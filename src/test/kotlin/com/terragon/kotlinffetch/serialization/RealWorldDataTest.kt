@@ -167,8 +167,8 @@ class RealWorldDataTest {
                                     putJsonObject("level5") {
                                         put("deepValue", "found at level 5")
                                         putJsonArray("deepArray") {
-                                            add("item1")
-                                            add("item2")
+                                            add(JsonPrimitive("item1"))
+                                            add(JsonPrimitive("item2"))
                                         }
                                     }
                                 }
@@ -333,9 +333,9 @@ class RealWorldDataTest {
                 put("publishDate", "2024-01-${(index % 28) + 1}T${(index % 24).toString().padStart(2, '0')}:00:00.000Z")
                 put("lastModified", "2024-01-${(index % 28) + 1}T${(index % 24).toString().padStart(2, '0')}:30:00.000Z")
                 putJsonArray("tags") {
-                    add("tag${index % 10}")
-                    add("category${index % 5}")
-                    if (index % 3 == 0) add("featured")
+                    add(JsonPrimitive("tag${index % 10}"))
+                    add(JsonPrimitive("category${index % 5}"))
+                    if (index % 3 == 0) add(JsonPrimitive("featured"))
                 }
                 putJsonObject("metadata") {
                     put("template", "article-template")

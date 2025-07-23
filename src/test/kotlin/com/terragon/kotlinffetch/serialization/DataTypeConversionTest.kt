@@ -299,7 +299,7 @@ class DataTypeConversionTest {
         assertEquals("null", entry["stringNull"]?.toString())
         assertNull(entry["actualNull"])
         assertEquals(123, entry["leadingZeros"]?.toString()?.toIntOrNull())
-        assertEquals(0.000123, entry["scientificNotation"]?.toString()?.toDoubleOrNull(), 0.0000001)
+        assertEquals(0.000123, entry["scientificNotation"]?.toString()?.toDoubleOrNull() ?: 0.0, 0.0000001)
     }
 
     @Test

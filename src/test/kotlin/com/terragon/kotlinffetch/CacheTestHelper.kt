@@ -10,8 +10,11 @@ package com.terragon.kotlinffetch.mock
 import com.terragon.kotlinffetch.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlin.collections.mutableMapOf
 import kotlin.collections.mutableSetOf
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Mock cache implementation for testing cache behavior
@@ -158,7 +161,9 @@ class CacheAwareTestHTTPClient(
     }
     
     private fun createResponse(content: String, statusCode: HttpStatusCode): Pair<String, HttpResponse> {
+        @OptIn(InternalAPI::class)
         val mockResponse = object : HttpResponse() {
+            override val coroutineContext: CoroutineContext = Job()
             override val call: io.ktor.client.call.HttpClientCall
                 get() = throw NotImplementedError()
             override val content: io.ktor.utils.io.ByteReadChannel

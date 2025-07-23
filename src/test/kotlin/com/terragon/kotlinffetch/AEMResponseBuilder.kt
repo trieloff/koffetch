@@ -15,7 +15,7 @@ class AEMResponseBuilder {
     private var total: Int = 0
     private var offset: Int = 0
     private var limit: Int = 255
-    private val data = mutableListOf<Map<String, Any>>()
+    private val data = mutableListOf<Map<String, Any?>>()
     
     companion object {
         /**
@@ -258,9 +258,9 @@ class AEMResponseBuilder {
     fun addSheetItem(
         path: String,
         sheet: String,
-        additionalData: Map<String, Any>
+        additionalData: Map<String, Any?>
     ): AEMResponseBuilder {
-        val entry = mutableMapOf<String, Any>(
+        val entry = mutableMapOf<String, Any?>(
             "path" to path,
             "sheet" to sheet
         )
