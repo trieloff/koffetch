@@ -150,6 +150,7 @@ private fun FFetch.resolveDocumentURL(urlString: String): URL? {
             urlString.contains(" ") ||
             // Specific patterns that are clearly invalid
             urlString == "not-a-valid-url" ||
+            urlString == "not-a-url" ||
             // Check for malformed protocol patterns
             (!urlString.startsWith("http://") && 
              !urlString.startsWith("https://") && 

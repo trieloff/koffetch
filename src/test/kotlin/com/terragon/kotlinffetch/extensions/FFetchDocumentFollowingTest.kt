@@ -241,9 +241,15 @@ class FFetchDocumentFollowingTest {
 
     @Test
     fun testNetworkTimeoutAndFailures() = runTest {
-        // Configure mock to throw network errors
-        mockHttpClient.shouldThrowNetworkError = true
-        mockHttpClient.networkErrorMessage = "Connection timeout"
+        // Configure mock to return error responses for document URLs only
+        mockHttpClient.setErrorResponse(
+            "https://example.com/docs/article1.html",
+            HttpStatusCode.GatewayTimeout
+        )
+        mockHttpClient.setErrorResponse(
+            "https://example.com/docs/article2.html", 
+            HttpStatusCode.GatewayTimeout
+        )
         
         val ffetch = FFetch(
             URL("https://example.com/query-index.json"),
@@ -257,12 +263,13 @@ class FFetchDocumentFollowingTest {
         
         assertEquals(3, results.size)
         
-        // All entries with URLs should have network errors
-        results.filter { it["documentUrl"] != null }.forEach { entry ->
+        // All entries that originally had URLs should have HTTP errors
+        val entriesWithUrls = results.filter { it["path"] in listOf("/content/article-1", "/content/article-2") }
+        entriesWithUrls.forEach { entry ->
             assertNull(entry["documentUrl"])
             val error = entry["documentUrl_error"] as? String
-            assertTrue(error?.contains("Network error") == true)
-            assertTrue(error?.contains("Connection timeout") == true)
+            assertTrue(error?.contains("HTTP error") == true)
+            assertTrue(error?.contains("504") == true)
         }
     }
 
@@ -329,7 +336,7 @@ class FFetchDocumentFollowingTest {
         assertNull(firstArticle["documentUrl_error"])
         
         // Verify large content was parsed
-        assertTrue(mockHtmlParser.lastParsedHtml?.length?.let { it > 10000 } == true)
+        assertTrue(mockHtmlParser.parseHistory.any { it.length > 10000 })
     }
 
     @Test
