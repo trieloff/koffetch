@@ -17,6 +17,7 @@
 package com.terragon.kotlinffetch.serialization
 
 import com.terragon.kotlinffetch.FFetchResponse
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -32,9 +33,11 @@ import kotlin.test.assertTrue
 
 class RealWorldDataTest {
 
+    @OptIn(ExperimentalSerializationApi::class)
     private val json = Json { 
         ignoreUnknownKeys = true
         isLenient = true
+        allowTrailingComma = true
     }
 
     @Test
