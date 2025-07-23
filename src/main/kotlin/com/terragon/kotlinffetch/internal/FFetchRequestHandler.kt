@@ -48,10 +48,12 @@ internal object FFetchRequestHandler {
                 mutableContext.total = fetchResponse.total
             }
             
-            // Emit entries
+            // Emit entries (check for cancellation between each emit)
             val entries = fetchResponse.toFFetchEntries()
             for (entry in entries) {
                 emit(entry)
+                // The emit function will throw CancellationException 
+                // if the flow collection has been cancelled
             }
             
             // Check if we've reached the end
