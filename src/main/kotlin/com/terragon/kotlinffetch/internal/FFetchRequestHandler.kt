@@ -10,11 +10,19 @@ package com.terragon.kotlinffetch.internal
 import com.terragon.kotlinffetch.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.net.URL
 
 /// Internal class to handle HTTP requests and pagination
 internal object FFetchRequestHandler {
+    
+    @OptIn(ExperimentalSerializationApi::class)
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        allowTrailingComma = true
+    }
     
     /// Perform paginated requests and emit entries
     suspend fun performRequest(
@@ -48,10 +56,12 @@ internal object FFetchRequestHandler {
                 mutableContext.total = fetchResponse.total
             }
             
-            // Emit entries
+            // Emit entries (check for cancellation between each emit)
             val entries = fetchResponse.toFFetchEntries()
             for (entry in entries) {
                 emit(entry)
+                // The emit function will throw CancellationException 
+                // if the flow collection has been cancelled
             }
             
             // Check if we've reached the end
@@ -94,7 +104,7 @@ internal object FFetchRequestHandler {
             validateHTTPResponse(response)
             
             // Parse JSON response
-            return Json.decodeFromString(FFetchResponse.serializer(), data)
+            return json.decodeFromString(FFetchResponse.serializer(), data)
             
         } catch (e: FFetchError) {
             throw e

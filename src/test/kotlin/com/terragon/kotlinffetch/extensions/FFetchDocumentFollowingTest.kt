@@ -101,7 +101,7 @@ class FFetchDocumentFollowingTest {
         
         // Verify HTML parser was called
         assertTrue(mockHtmlParser.parseCallCount > 0)
-        assertTrue(mockHtmlParser.lastParsedHtml?.contains("Article 1 Content") == true)
+        assertTrue(mockHtmlParser.wasHtmlParsed("Article 1 Content"))
         
         // Second article should also succeed (relative URL resolved)
         val secondArticle = results.first { it["path"] == "/content/article-2" }

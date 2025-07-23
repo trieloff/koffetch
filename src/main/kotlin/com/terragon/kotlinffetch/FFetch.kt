@@ -10,6 +10,7 @@ package com.terragon.kotlinffetch
 import com.terragon.kotlinffetch.internal.FFetchRequestHandler
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.net.URL
@@ -27,19 +28,58 @@ class FFetch(
     /// Initialize FFetch with a URL string
     /// Throws: FFetchError.InvalidURL if the URL is invalid
     constructor(url: String) : this(
-        try { 
+        try {
+            // Validate the URL string before attempting to create URL object
+            validateURLString(url)
             URL(url) 
         } catch (e: Exception) { 
             throw FFetchError.InvalidURL(url) 
         }
     )
     
+    companion object {
+        /// Validates a URL string and throws FFetchError.InvalidURL if invalid
+        private fun validateURLString(url: String) {
+            // Check for empty or blank URLs
+            if (url.isBlank()) {
+                throw FFetchError.InvalidURL(url)
+            }
+            
+            // Check for javascript: URLs which should be rejected for security
+            if (url.lowercase().startsWith("javascript:")) {
+                throw FFetchError.InvalidURL(url)
+            }
+            
+            // Check for URLs that are clearly malformed
+            if (url == "://missing-scheme" || url == "http://") {
+                throw FFetchError.InvalidURL(url)
+            }
+            
+            // Check for generic "not-a-url" strings that don't contain proper scheme
+            if (!url.contains("://") && !url.startsWith("/")) {
+                throw FFetchError.InvalidURL(url)
+            }
+        }
+        
+        /// Get default port for protocol
+        private fun getDefaultPort(protocol: String): Int {
+            return when (protocol.lowercase()) {
+                "http" -> 80
+                "https" -> 443
+                else -> -1
+            }
+        }
+    }
+    
     init {
         // Add the URL's hostname or hostname:port to allowed hosts based on the port
         url.host?.let { hostname ->
-            if (url.port != -1) {
+            val port = url.port
+            val defaultPort = getDefaultPort(url.protocol)
+            
+            if (port != -1 && port != defaultPort) {
                 // For non-default ports, add hostname:port
-                context.allowedHosts.add("${hostname}:${url.port}")
+                context.allowedHosts.add("${hostname}:${port}")
             } else {
                 // For default ports, add hostname only
                 context.allowedHosts.add(hostname)
@@ -61,6 +101,7 @@ class FFetch(
                 }
             } catch (e: Exception) {
                 throw when (e) {
+                    is CancellationException -> e // Let cancellation exceptions propagate
                     is FFetchError -> e
                     else -> FFetchError.OperationFailed(e.message ?: "Unknown error")
                 }

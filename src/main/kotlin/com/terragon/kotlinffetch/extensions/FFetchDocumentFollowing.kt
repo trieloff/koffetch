@@ -194,16 +194,29 @@ private fun FFetch.isHostnameAllowed(url: URL): Boolean {
         return true
     }
     
+    // Allow if hostname matches any in the allowlist
+    // Include port number for security - different ports should be treated as different hostnames
     val hostname = url.host ?: return false
+    val port = url.port
+    val defaultPort = getDefaultPort(url.protocol)
     
     // For non-default ports, require explicit hostname:port permission
-    if (url.port != -1) {
-        val hostnameWithPort = "${hostname}:${url.port}"
+    if (port != -1 && port != defaultPort) {
+        val hostnameWithPort = "$hostname:$port"
         return context.allowedHosts.contains(hostnameWithPort)
     }
     
     // For default ports, check for hostname-only permission
     return context.allowedHosts.contains(hostname)
+}
+
+/// Get default port for protocol
+private fun getDefaultPort(protocol: String): Int {
+    return when (protocol.lowercase()) {
+        "http" -> 80
+        "https" -> 443
+        else -> -1
+    }
 }
 
 // MARK: - Hostname Security Configuration
