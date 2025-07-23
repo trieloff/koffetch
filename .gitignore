@@ -12,6 +12,20 @@ out/
 gradle.properties
 local.properties
 
+# Environment files
+.env
+.env.local
+.env.production
+
+# Test reports and coverage
+build/reports/
+build/test-results/
+*.log
+
+# IDE files
+.idea/
+*.code-workspace
+
 # Swift Package Manager & Xcode
 .build/
 .swiftpm/
