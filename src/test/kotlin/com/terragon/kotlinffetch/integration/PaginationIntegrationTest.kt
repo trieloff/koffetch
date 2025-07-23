@@ -14,6 +14,8 @@ import com.terragon.kotlinffetch.extensions.filter
 import com.terragon.kotlinffetch.extensions.map
 import com.terragon.kotlinffetch.mock.MockFFetchHTTPClient
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import kotlin.test.Test
@@ -103,12 +105,11 @@ class PaginationIntegrationTest {
     fun testSmallChunkSizePagination() = runBlocking {
         // Setup: Dataset that will require many small requests
         val totalItems = 500
-        val pageSize = 50
-        val chunkSize = 25 // Smaller than page size
+        val chunkSize = 25 // Smaller than typical page size
         
-        setupPaginatedDataset(totalItems, pageSize)
+        setupPaginatedDataset(totalItems, chunkSize)
         
-        // Execute: Use smaller chunk size than server page size
+        // Execute: Use the small chunk size
         val ffetch = FFetch(baseUrl)
             .withHTTPClient(mockClient)
             .chunks(chunkSize)
@@ -141,13 +142,7 @@ class PaginationIntegrationTest {
             .withHTTPClient(mockClient)
             .chunks(pageSize)
         
-        val first150Items = mutableListOf<FFetchEntry>()
-        ffetch.asFlow().collect { entry ->
-            first150Items.add(entry)
-            if (first150Items.size >= 150) {
-                return@collect
-            }
-        }
+        val first150Items = ffetch.asFlow().take(150).toList()
         
         // Verify: Only got the requested number of items
         assertEquals(150, first150Items.size)

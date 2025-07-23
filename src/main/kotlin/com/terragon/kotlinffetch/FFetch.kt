@@ -10,6 +10,7 @@ package com.terragon.kotlinffetch
 import com.terragon.kotlinffetch.internal.FFetchRequestHandler
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.net.URL
@@ -80,6 +81,7 @@ class FFetch(
                 }
             } catch (e: Exception) {
                 throw when (e) {
+                    is CancellationException -> e // Let cancellation exceptions propagate
                     is FFetchError -> e
                     else -> FFetchError.OperationFailed(e.message ?: "Unknown error")
                 }
