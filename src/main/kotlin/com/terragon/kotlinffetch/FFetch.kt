@@ -35,9 +35,15 @@ class FFetch(
     )
     
     init {
-        // Set the initial hostname as allowed if no hosts are explicitly allowed
-        if (context.allowedHosts.isEmpty()) {
-            url.host?.let { context.allowedHosts.add(it) }
+        // Add the URL's hostname or hostname:port to allowed hosts based on the port
+        url.host?.let { hostname ->
+            if (url.port != -1) {
+                // For non-default ports, add hostname:port
+                context.allowedHosts.add("${hostname}:${url.port}")
+            } else {
+                // For default ports, add hostname only
+                context.allowedHosts.add(hostname)
+            }
         }
     }
     
