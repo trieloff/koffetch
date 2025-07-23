@@ -1,4 +1,4 @@
-name: Swift Lint & Test
+name: Kotlin Build & Test
 
 on:
   workflow_dispatch:
@@ -10,93 +10,82 @@ permissions:
   contents: write
 
 jobs:
-  test-macos:
-    name: Test macOS (Swift ${{ matrix.swift }})
-    runs-on: macos-latest
+  test:
+    name: Test (Kotlin ${{ matrix.kotlin }}, JDK ${{ matrix.java }})
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        swift: ["5.9"]
+        java: ["21"]
+        kotlin: ["1.9.24"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Swift
-        uses: swift-actions/setup-swift@v1
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
         with:
-          swift-version: ${{ matrix.swift }}
+          java-version: ${{ matrix.java }}
+          distribution: 'temurin'
 
-      - name: Cache Swift packages
-        uses: actions/cache@v3
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
         with:
-          path: .build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-spm-
+            ${{ runner.os }}-gradle-
 
-      - name: Install SwiftLint and lcov
-        run: |
-          brew install swiftlint lcov
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
-      - name: Lint (SwiftLint)
-        run: swiftlint
+      - name: Lint and Check
+        run: ./gradlew check
 
       - name: Build
-        run: swift build --build-tests -Xswiftc -warnings-as-errors
+        run: ./gradlew build
 
       - name: Run Tests with Coverage
-        run: swift test --enable-test-discovery --enable-code-coverage -Xswiftc -warnings-as-errors
-
-      - name: Generate coverage report
-        run: |
-          xcrun llvm-cov export .build/arm64-apple-macosx/debug/SwiftFFetchPackageTests.xctest/Contents/MacOS/SwiftFFetchPackageTests \
-            -instr-profile=.build/arm64-apple-macosx/debug/codecov/default.profdata \
-            -format="lcov" > coverage.lcov
-
-      - name: Filter coverage to source files only
-        run: |
-          # Filter to only include our source files (Tests already excluded by extract pattern)
-          lcov --extract coverage.lcov "*/Sources/SwiftFFetch/*" -o coverage_filtered.lcov
+        run: ./gradlew test jacocoTestReport
 
       - name: Generate coverage summary
         run: |
           echo "## 📊 Code Coverage Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Source Files Coverage" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| File | Line Coverage | Region Coverage |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|---------------|-----------------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Extract coverage from JaCoCo XML report
+          if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
+            COVERAGE=$(grep -o 'missed="[0-9]*".*covered="[0-9]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | sed 's/missed="\([0-9]*\)".*covered="\([0-9]*\)"/\1 \2/' | awk '{printf "%.2f", ($2/($1+$2))*100}')
+            echo "### Overall Coverage: ${COVERAGE}%" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📁 [View detailed HTML report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Coverage report not found" >> $GITHUB_STEP_SUMMARY
+          fi
 
-          xcrun llvm-cov report .build/arm64-apple-macosx/debug/SwiftFFetchPackageTests.xctest/Contents/MacOS/SwiftFFetchPackageTests \
-            -instr-profile=.build/arm64-apple-macosx/debug/codecov/default.profdata \
-            | grep "Sources/SwiftFFetch" \
-            | while read -r line; do
-              file=$(echo "$line" | awk '{print $1}' | sed 's/.*Sources\/SwiftFFetch\///')
-              line_total=$(echo "$line" | awk '{print $2}')
-              line_missed=$(echo "$line" | awk '{print $3}')
-              line_percentage=$(echo "$line" | awk '{print $4}')
-              region_total=$(echo "$line" | awk '{print $8}')
-              region_missed=$(echo "$line" | awk '{print $9}')
-              region_percentage=$(echo "$line" | awk '{print $10}')
-              echo "| $file | $line_percentage | $region_percentage |" >> $GITHUB_STEP_SUMMARY
-            done
-
-      - name: Upload coverage to Codecov
+      - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: coverage_filtered.lcov
+          file: build/reports/jacoco/test/jacocoTestReport.xml
           flags: unittests
-          name: SwiftFFetch Coverage
+          name: KoffetchCoverage
           fail_ci_if_error: false
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Coverage Gate
         run: |
-          # Extract overall coverage percentage for source files
-          COVERAGE=$(xcrun llvm-cov report .build/arm64-apple-macosx/debug/SwiftFFetchPackageTests.xctest/Contents/MacOS/SwiftFFetchPackageTests \
-            -instr-profile=.build/arm64-apple-macosx/debug/codecov/default.profdata \
-            | grep "Sources/SwiftFFetch" | awk '{covered+=$8-$9; total+=$8} END {printf "%.2f", (covered/total)*100}')
+          # Extract overall coverage percentage from JaCoCo XML
+          if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
+            MISSED=$(grep -o 'missed="[0-9]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | grep -o '[0-9]*')
+            COVERED=$(grep -o 'covered="[0-9]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | grep -o '[0-9]*')
+            COVERAGE=$(echo "scale=2; ($COVERED/($MISSED+$COVERED))*100" | bc -l)
+          else
+            echo "❌ Coverage report not found"
+            exit 1
+          fi
 
-          echo "Overall source code coverage: $COVERAGE%"
+          echo "Overall test coverage: $COVERAGE%"
 
           # Set minimum coverage threshold (95%)
           THRESHOLD=95.0
@@ -108,89 +97,20 @@ jobs:
             echo "✅ Coverage $COVERAGE% meets threshold $THRESHOLD%"
           fi
 
-  test-ios:
-    name: Test iOS Simulator (Swift ${{ matrix.swift }})
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        swift: ["5.9"]
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Swift
-        uses: swift-actions/setup-swift@v1
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          swift-version: ${{ matrix.swift }}
-
-      - name: Cache Swift packages
-        uses: actions/cache@v3
-        with:
-          path: .build
-          key: ${{ runner.os }}-ios-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-ios-spm-
-
-      - name: Build and Test for iOS Simulator
-        run: |
-          xcodebuild test -scheme SwiftFFetch -destination "platform=iOS Simulator,name=iPhone 15" -enableCodeCoverage NO
-
-  test-tvos:
-    name: Test tvOS Simulator (Swift ${{ matrix.swift }})
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        swift: ["5.9"]
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Swift
-        uses: swift-actions/setup-swift@v1
-        with:
-          swift-version: ${{ matrix.swift }}
-
-      - name: Cache Swift packages
-        uses: actions/cache@v3
-        with:
-          path: .build
-          key: ${{ runner.os }}-tvos-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-tvos-spm-
-
-      - name: Build and Test for tvOS Simulator
-        run: |
-          xcodebuild test -scheme SwiftFFetch -destination "platform=tvOS Simulator,name=Apple TV" -enableCodeCoverage NO
-
-  test-watchos:
-    name: Test watchOS Simulator (Swift ${{ matrix.swift }})
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        swift: ["5.9"]
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Swift
-        uses: swift-actions/setup-swift@v1
-        with:
-          swift-version: ${{ matrix.swift }}
-
-      - name: Cache Swift packages
-        uses: actions/cache@v3
-        with:
-          path: .build
-          key: ${{ runner.os }}-watchos-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-watchos-spm-
-
-      - name: Build and Test for watchOS Simulator
-        run: |
-          xcodebuild test -scheme SwiftFFetch -destination "platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)" -enableCodeCoverage NO
+          name: test-results-jdk${{ matrix.java }}
+          path: |
+            build/reports/tests/test/
+            build/reports/jacoco/test/
 
   update-badge:
     name: Update Vibe Coded Badge
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip vibe-badge]')"
-    needs: [test-macos, test-ios, test-tvos, test-watchos]
+    needs: [test]
     steps:
       - uses: actions/checkout@v4
         with:
