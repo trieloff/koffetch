@@ -1,20 +1,20 @@
-# SwiftFFetch
+# KotlinFFetch
 
 [![79% Vibe_Coded](https://img.shields.io/badge/79%25-Vibe_Coded-ff69b4?style=for-the-badge&logo=zedindustries&logoColor=white)](https://github.com/trieloff/vibe-coded-badge-action)
 
-[![codecov](https://img.shields.io/codecov/c/github/trieloff/swffetch?token=SROMISB0K5&style=for-the-badge&logo=codecov&logoColor=white)](https://codecov.io/gh/trieloff/swffetch)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/trieloff/swffetch/test.yaml?style=for-the-badge&logo=github)](https://github.com/trieloff/swffetch/actions)
-[![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange?style=for-the-badge&logo=swift&logoColor=white)](https://swift.org)
-[![Platform](https://img.shields.io/badge/Platform-iOS%2015%2B%20%7C%20macOS%2012%2B%20%7C%20tvOS%2015%2B%20%7C%20watchOS%208%2B-lightgrey?style=for-the-badge)](https://developer.apple.com)
+[![codecov](https://img.shields.io/codecov/c/github/terragon/kotlin-ffetch?style=for-the-badge&logo=codecov&logoColor=white)](https://codecov.io/gh/terragon/kotlin-ffetch)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/terragon/kotlin-ffetch/test.yaml?style=for-the-badge&logo=github)](https://github.com/terragon/kotlin-ffetch/actions)
+[![Kotlin 1.9+](https://img.shields.io/badge/Kotlin-1.9%2B-orange?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Platform](https://img.shields.io/badge/Platform-JVM-lightgrey?style=for-the-badge)](https://kotlinlang.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=for-the-badge)](LICENSE)
-[![SPM](https://img.shields.io/badge/SPM-Compatible-brightgreen?style=for-the-badge&logo=swift&logoColor=white)](https://swift.org/package-manager)
+[![Gradle](https://img.shields.io/badge/Gradle-Compatible-brightgreen?style=for-the-badge&logo=gradle&logoColor=white)](https://gradle.org)
 
-SwiftFFetch is a Swift library for fetching and processing content from AEM (.live) Content APIs and similar JSON-based endpoints. It is designed for composable applications, making it easy to retrieve, paginate, and process content in a Swift-native way.
+KotlinFFetch is a Kotlin library for fetching and processing content from AEM (.live) Content APIs and similar JSON-based endpoints. It is designed for composable applications, making it easy to retrieve, paginate, and process content in a Kotlin-native way.
 
 ## Features
 
-- **Swift-native API**: Designed for idiomatic use in Swift projects.
-- **Async/Await Support**: Uses Swift concurrency for efficient, modern code.
+- **Kotlin-native API**: Designed for idiomatic use in Kotlin projects.
+- **Coroutines Support**: Uses Kotlin coroutines for efficient, modern code.
 - **Pagination**: Handles paginated endpoints seamlessly.
 - **Composable**: Chainable methods for mapping, filtering, and transforming content.
 - **HTTP Caching**: Intelligent caching with respect for HTTP cache control headers.
@@ -23,48 +23,48 @@ SwiftFFetch is a Swift library for fetching and processing content from AEM (.li
 
 ## Installation
 
-Add SwiftFFetch to your `Package.swift` dependencies:
+Add KotlinFFetch to your `build.gradle.kts` dependencies:
 
-```swift
-.package(url: "https://github.com/your-org/swffetch.git", from: "1.0.0")
+```kotlin
+dependencies {
+    implementation("com.terragon.kotlinffetch:kotlin-ffetch:1.0.0")
+}
 ```
-
-Then add `"SwiftFFetch"` to your target dependencies.
 
 ## Usage
 
 ### Fetch Entries from an Index
 
-```swift
-import SwiftFFetch
+```kotlin
+import com.terragon.kotlinffetch.FFetch
 
-let entries = FFetch(url: "https://example.com/query-index.json")
-for try await entry in entries {
-    print(entry["title"] as? String ?? "")
+val entries = FFetch("https://example.com/query-index.json")
+for (entry in entries) {
+    println(entry["title"] as? String ?: "")
 }
 ```
 
 ### Get the First Entry
 
-```swift
-let firstEntry = try await FFetch(url: "https://example.com/query-index.json").first()
-print(firstEntry?["title"] as? String ?? "")
+```kotlin
+val firstEntry = FFetch("https://example.com/query-index.json").first()
+println(firstEntry?["title"] as? String ?: "")
 ```
 
 ### Get All Entries as an Array
 
-```swift
-let allEntries = try await FFetch(url: "https://example.com/query-index.json").all()
-print("Total entries: \(allEntries.count)")
+```kotlin
+val allEntries = FFetch("https://example.com/query-index.json").all()
+println("Total entries: ${allEntries.size}")
 ```
 
 ## HTTP Caching
 
-SwiftFFetch includes comprehensive HTTP caching support that respects server cache control headers by default and allows for custom cache configurations.
+KotlinFFetch includes comprehensive HTTP caching support that respects server cache control headers by default and allows for custom cache configurations.
 
 ### Default Caching Behavior
 
-By default, SwiftFFetch uses a shared memory cache and respects HTTP cache control headers:
+By default, KotlinFFetch uses HTTP client caching and respects HTTP cache control headers:
 
 ```swift
 // First request fetches from server
@@ -97,102 +97,90 @@ let data = try await FFetch(url: "https://example.com/api/data.json")
 
 ### Custom Cache Configuration
 
-Create your own cache with specific memory and disk limits:
+Create your own cache with specific configurations:
 
-```swift
-let customCache = URLCache(
-    memoryCapacity: 10 * 1024 * 1024,  // 10MB
-    diskCapacity: 50 * 1024 * 1024     // 50MB
+```kotlin
+val customConfig = FFetchCacheConfig(
+    policy = CachePolicy.USE_PROTOCOL_CACHE_POLICY,
+    maxAge = 3600  // Cache for 1 hour regardless of server headers
 )
 
-let customConfig = FFetchCacheConfig(
-    policy: .useProtocolCachePolicy,
-    cache: customCache,
-    maxAge: 3600  // Cache for 1 hour regardless of server headers
-)
-
-let data = try await FFetch(url: "https://example.com/api/data.json")
+val data = FFetch("https://example.com/api/data.json")
     .cache(customConfig)
     .all()
 ```
 
 ### Cache Sharing
 
-The cache is reusable between multiple FFetch calls and can be shared with other HTTP requests:
+The cache is reusable between multiple FFetch calls:
 
-```swift
-// Create a shared cache for your application
-let appCache = URLCache(memoryCapacity: 20 * 1024 * 1024, diskCapacity: 100 * 1024 * 1024)
-let config = FFetchCacheConfig(cache: appCache)
+```kotlin
+// Create a shared cache configuration
+val config = FFetchCacheConfig()
 
 // Use with FFetch
-let ffetchData = try await FFetch(url: "https://api.example.com/data.json")
+val ffetchData = FFetch("https://api.example.com/data.json")
     .cache(config)
     .all()
-
-// Use the same cache with URLSession
-let sessionConfig = URLSessionConfiguration.default
-sessionConfig.urlCache = appCache
-let session = URLSession(configuration: sessionConfig)
 ```
 
 ### Backward Compatibility
 
 Legacy cache methods are still supported:
 
-```swift
-// Legacy method - maps to .cache(.noCache)
-let freshData = try await FFetch(url: "https://example.com/api/data.json")
+```kotlin
+// Legacy method - maps to .cache(CachePolicy.NO_CACHE)
+val freshData = FFetch("https://example.com/api/data.json")
     .reloadCache()
     .all()
 
 // Legacy method with parameter
-let data = try await FFetch(url: "https://example.com/api/data.json")
+val data = FFetch("https://example.com/api/data.json")
     .withCacheReload(false)  // Uses default cache behavior
     .all()
 ```
 
 ## Advanced Usage
 
-```swift
-let allEntries = try await FFetch(url: "https://example.com/query-index.json").all()
-allEntries.forEach { entry in
-    print(entry)
+```kotlin
+val allEntries = FFetch("https://example.com/query-index.json").all()
+allEntries.forEach { entry ->
+    println(entry)
 }
 ```
 
 ### Map and Filter Entries
 
-```swift
-let filteredTitles = FFetch(url: "https://example.com/query-index.json")
-    .map { $0["title"] as? String }
-    .filter { $0?.contains("Swift") == true }
+```kotlin
+val filteredTitles = FFetch("https://example.com/query-index.json")
+    .map { it["title"] as? String }
+    .filter { it?.contains("Kotlin") == true }
 
-for try await title in filteredTitles {
-    print(title ?? "")
+for (title in filteredTitles) {
+    println(title ?: "")
 }
 ```
 
 ### Control Pagination with `chunks` and `limit`
 
-```swift
-let limitedEntries = FFetch(url: "https://example.com/query-index.json")
+```kotlin
+val limitedEntries = FFetch("https://example.com/query-index.json")
     .chunks(100)
     .limit(5)
 
-for try await entry in limitedEntries {
-    print(entry)
+for (entry in limitedEntries) {
+    println(entry)
 }
 ```
 
 ### Access a Specific Sheet
 
-```swift
-let productEntries = FFetch(url: "https://example.com/query-index.json")
+```kotlin
+val productEntries = FFetch("https://example.com/query-index.json")
     .sheet("products")
 
-for try await entry in productEntries {
-    print(entry["sku"] as? String ?? "")
+for (entry in productEntries) {
+    println(entry["sku"] as? String ?: "")
 }
 ```
 
@@ -200,17 +188,16 @@ for try await entry in productEntries {
 
 SwiftFFetch provides a `follow()` method to fetch HTML documents referenced in your data. For security, document following is restricted to the same hostname as your initial request by default.
 
-```swift
+```kotlin
 // Basic document following (same hostname only)
-let entriesWithDocs = try await FFetch(url: "https://example.com/query-index.json")
-    .follow("path", as: "document")  // follows URLs in 'path' field
+val entriesWithDocs = FFetch("https://example.com/query-index.json")
+    .follow("path", "document")  // follows URLs in 'path' field
     .all()
 
 // The 'document' field will contain parsed HTML Document objects
-for entry in entriesWithDocs {
-    if let doc = entry["document"] as? Document {
-        print(doc.title())
-    }
+for (entry in entriesWithDocs) {
+    val doc = entry["document"] as? Document
+    doc?.let { println(it.title()) }
 }
 ```
 
@@ -218,23 +205,23 @@ for entry in entriesWithDocs {
 
 To allow document following to other hostnames, use the `allow()` method:
 
-```swift
+```kotlin
 // Allow specific hostname
-let entries = try await FFetch(url: "https://example.com/query-index.json")
+val entries = FFetch("https://example.com/query-index.json")
     .allow("trusted.com")
-    .follow("path", as: "document")
+    .follow("path", "document")
     .all()
 
 // Allow multiple hostnames
-let entries = try await FFetch(url: "https://example.com/query-index.json")
-    .allow(["trusted.com", "api.example.com"])
-    .follow("path", as: "document")
+val entries = FFetch("https://example.com/query-index.json")
+    .allow(listOf("trusted.com", "api.example.com"))
+    .follow("path", "document")
     .all()
 
 // Allow all hostnames (use with caution)
-let entries = try await FFetch(url: "https://example.com/query-index.json")
+val entries = FFetch("https://example.com/query-index.json")
     .allow("*")
-    .follow("path", as: "document")
+    .follow("path", "document")
     .all()
 ```
 
@@ -253,7 +240,7 @@ The `query-index.json` files used in the examples above are typically generated 
 
 ## Example
 
-See `Examples.swift` in the repository for more detailed usage.
+See the `examples` package in the repository for more detailed usage.
 
 ## License
 
@@ -262,48 +249,21 @@ This project is licensed under the terms of the Apache License 2.0. See [LICENSE
 ## Development Setup
 
 ### Quick Commands
-Use the provided Makefile for common development tasks:
+Use Gradle for common development tasks:
 
 ```bash
 # Run all tests
-make test
+./gradlew test
 
 # Run tests with coverage
-make coverage
-
-# Generate detailed coverage report
-make coverage-report
-
-# Run swiftlint
-make lint
+./gradlew test jacocoTestReport
 
 # Build the project
-make build
+./gradlew build
 
 # Clean build artifacts
-make clean
+./gradlew clean
 
-# Install dependencies
-make install
-
-# Format code (requires swiftformat)
-make format
+# Publish to local repository
+./gradlew publishToMavenLocal
 ```
-
-### Pre-commit Hook
-This project uses SwiftLint as a pre-commit hook to ensure code quality. The hook automatically runs before each commit and will prevent commits if there are any linting violations.
-
-To bypass the pre-commit hook (not recommended), use:
-```bash
-git commit --no-verify
-```
-
-To set up the pre-commit hook automatically, run:
-```bash
-./scripts/setup-pre-commit-hook.sh
-```
-
-This script will:
-- Check if SwiftLint is installed (and install it via Homebrew if needed)
-- Install the pre-commit hook
-- Test the hook to ensure it works correctly

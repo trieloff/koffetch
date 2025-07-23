@@ -25,7 +25,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
     
-    // HTML parsing (equivalent to SwiftSoup)
+    // HTML parsing
     implementation("org.jsoup:jsoup:1.17.2")
     
     // JSON handling
@@ -66,7 +66,7 @@ publishing {
             
             pom {
                 name.set("KotlinFFetch")
-                description.set("A Kotlin port of SwiftFFetch for fetching and processing content from AEM (.live) Content APIs")
+                description.set("A Kotlin library for fetching and processing content from AEM (.live) Content APIs")
                 url.set("https://github.com/terragon/kotlin-ffetch")
                 
                 licenses {
