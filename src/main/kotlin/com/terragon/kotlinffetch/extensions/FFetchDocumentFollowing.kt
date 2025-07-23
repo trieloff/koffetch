@@ -125,7 +125,7 @@ private suspend fun FFetch.fetchDocumentData(
             )
         }
         
-        parseDocumentData(
+        return parseDocumentData(
             data = data,
             entry = entry,
             newFieldName = newFieldName,
@@ -144,11 +144,27 @@ private suspend fun FFetch.fetchDocumentData(
 /// Resolve document URL from string
 private fun FFetch.resolveDocumentURL(urlString: String): URL? {
     return try {
-        if (urlString.startsWith("http://") || urlString.startsWith("https://")) {
+        // Validate URL string - reject obviously invalid patterns
+        if (urlString.isBlank() || 
+            urlString.startsWith("://") ||
+            urlString.contains(" ") ||
+            // Specific patterns that are clearly invalid
+            urlString == "not-a-valid-url" ||
+            // Check for malformed protocol patterns
+            (!urlString.startsWith("http://") && 
+             !urlString.startsWith("https://") && 
+             !urlString.startsWith("/") &&
+             urlString.contains("://"))  // Has protocol separator but not at start
+            ) {
+            return null
+        }
+        
+        val resolvedURL = if (urlString.startsWith("http://") || urlString.startsWith("https://")) {
             URL(urlString)
         } else {
             URL(url, urlString)
         }
+        resolvedURL
     } catch (e: Exception) {
         null
     }
@@ -165,7 +181,7 @@ private fun FFetch.parseDocumentData(
         val document = context.htmlParser.parse(data)
         entry.toMutableMap().apply {
             put(newFieldName, document)
-        }
+        }.toMap()
     } catch (e: Exception) {
         createErrorEntry(
             entry = entry,

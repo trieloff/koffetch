@@ -79,19 +79,6 @@ class FFetchDocumentFollowingTest {
         
         val results = ffetch.follow("documentUrl").asFlow().toList()
         
-        // Debug output
-        println("Results size: ${results.size}")
-        results.forEachIndexed { index, entry ->
-            println("Entry $index:")
-            entry.forEach { (key, value) ->
-                println("  $key = $value (${value?.javaClass?.simpleName})")
-            }
-        }
-        println("HTTP requests made: ${mockHttpClient.requestLog.size}")
-        mockHttpClient.requestLog.forEach { request ->
-            println("  ${request.url}")
-        }
-        
         assertEquals(3, results.size)
         
         // First article should have parsed document
@@ -101,7 +88,9 @@ class FFetchDocumentFollowingTest {
         
         // Verify HTML parser was called
         assertTrue(mockHtmlParser.parseCallCount > 0)
-        assertTrue(mockHtmlParser.lastParsedHtml?.contains("Article 1 Content") == true)
+        
+        // Verify that Article 1 Content was parsed (check in parse history since lastParsedHtml is the LAST one)
+        assertTrue(mockHtmlParser.parseHistory.any { it.contains("Article 1 Content") })
         
         // Second article should also succeed (relative URL resolved)
         val secondArticle = results.first { it["path"] == "/content/article-2" }
