@@ -11,8 +11,10 @@ import com.terragon.kotlinffetch.*
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
@@ -227,7 +229,7 @@ class DefaultFFetchHTTPClientTest {
         val urls = (1..5).map { "https://example.com/path$it" }
         
         val results = urls.map { url ->
-            kotlinx.coroutines.async {
+            async {
                 client.fetch(url)
             }
         }.map { it.await() }

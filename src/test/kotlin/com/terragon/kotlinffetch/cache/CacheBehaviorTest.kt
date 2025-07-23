@@ -9,14 +9,20 @@ package com.terragon.kotlinffetch.cache
 
 import com.terragon.kotlinffetch.*
 import com.terragon.kotlinffetch.mock.MockFFetchHTTPClient
-import io.ktor.http.*
+import com.terragon.kotlinffetch.mock.MockResponse
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
+import java.net.URL
 
 class CacheBehaviorTest {
     
     private fun createMockClient(responses: Map<String, String> = mapOf()): MockFFetchHTTPClient {
-        return MockFFetchHTTPClient(responses)
+        val client = MockFFetchHTTPClient()
+        responses.forEach { (url, content) ->
+            client.setResponse(url, MockResponse.success(content))
+        }
+        return client
     }
     
     @Test
@@ -161,7 +167,7 @@ class CacheBehaviorTest {
             cacheConfig = FFetchCacheConfig.Default
         )
         
-        val ffetch = FFetch("https://example.com/test.json", originalContext)
+        val ffetch = FFetch(URL("https://example.com/test.json"), originalContext)
         val modifiedFFetch = ffetch.cache(FFetchCacheConfig.CacheOnly)
         
         // Verify that only cache config changed, other properties preserved

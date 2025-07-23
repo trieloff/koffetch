@@ -129,7 +129,7 @@ class FFetchResponseSerializationTest {
         val entry = response.data[0]
         assertEquals("Test Article", (entry["title"] as JsonPrimitive).content)
         assertEquals("some value", (entry["futureField"] as JsonPrimitive).content)
-        assertEquals(42, (entry["anotherNewField"] as JsonPrimitive).int)
+        assertEquals(42, (entry["anotherNewField"] as JsonPrimitive).content.toInt())
     }
 
     @Test

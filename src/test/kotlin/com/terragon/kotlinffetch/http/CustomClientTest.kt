@@ -10,7 +10,10 @@ package com.terragon.kotlinffetch.http
 import com.terragon.kotlinffetch.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 
 class CustomClientTest {
@@ -48,7 +51,9 @@ class CustomClientTest {
             
             // Create a mock HttpResponse - this is simplified for testing
             // In real implementation, we'd need to create a proper HttpResponse mock
+            @OptIn(InternalAPI::class)
             val mockResponse = object : HttpResponse() {
+                override val coroutineContext: CoroutineContext = Job()
                 override val call: io.ktor.client.call.HttpClientCall
                     get() = throw NotImplementedError()
                 override val content: io.ktor.utils.io.ByteReadChannel
