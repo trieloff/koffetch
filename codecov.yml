@@ -1,10 +1,7 @@
 # Codecov configuration to exclude test files
 ignore:
-  - "Tests"
-  - "Tests/**/*"
-  - "**/Tests/**/*"
-  - "**/*Tests.swift"
-  - "**/TestSupport.swift"
+  - "src/test/**/*"
+  - "**/test/**/*"
 
 # Coverage settings
 coverage:
