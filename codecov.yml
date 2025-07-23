@@ -1,7 +1,10 @@
 # Codecov configuration to exclude test files
 ignore:
+  - "src/test"
   - "src/test/**/*"
-  - "**/test/**/*"
+  - "**/src/test/**/*"
+  - "**/*Test.kt"
+  - "**/TestSupport.kt"
 
 # Coverage settings
 coverage:
