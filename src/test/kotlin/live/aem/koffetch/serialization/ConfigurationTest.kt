@@ -28,22 +28,23 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ConfigurationTest {
-
     @Test
     fun `test FFetchContext data class behavior and copying`() {
-        val original = FFetchContext(
-            chunkSize = 100,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.NoCache,
-            sheetName = "test-sheet",
-            maxConcurrency = 10
-        )
+        val original =
+            FFetchContext(
+                chunkSize = 100,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.NoCache,
+                sheetName = "test-sheet",
+                maxConcurrency = 10,
+            )
 
         // Test copy with modifications
-        val modified = original.copy(
-            chunkSize = 200,
-            sheetName = "modified-sheet"
-        )
+        val modified =
+            original.copy(
+                chunkSize = 200,
+                sheetName = "modified-sheet",
+            )
 
         // Verify original is unchanged
         assertEquals(100, original.chunkSize)
@@ -63,17 +64,19 @@ class ConfigurationTest {
 
     @Test
     fun `test FFetchCacheConfig data class behavior`() {
-        val original = FFetchCacheConfig(
-            noCache = true,
-            maxAge = 3600,
-            ignoreServerCacheControl = true
-        )
+        val original =
+            FFetchCacheConfig(
+                noCache = true,
+                maxAge = 3600,
+                ignoreServerCacheControl = true,
+            )
 
         // Test copy with modifications
-        val modified = original.copy(
-            noCache = false,
-            cacheOnly = true
-        )
+        val modified =
+            original.copy(
+                noCache = false,
+                cacheOnly = true,
+            )
 
         // Verify original is unchanged
         assertTrue(original.noCache)
@@ -119,33 +122,37 @@ class ConfigurationTest {
     @Test
     fun `test configuration validation and edge cases`() {
         // Test extreme values
-        val extremeContext = FFetchContext(
-            chunkSize = 1,
-            maxConcurrency = 1
-        )
+        val extremeContext =
+            FFetchContext(
+                chunkSize = 1,
+                maxConcurrency = 1,
+            )
         assertEquals(1, extremeContext.chunkSize)
         assertEquals(1, extremeContext.maxConcurrency)
 
-        val largeContext = FFetchContext(
-            chunkSize = 10000,
-            maxConcurrency = 1000
-        )
+        val largeContext =
+            FFetchContext(
+                chunkSize = 10000,
+                maxConcurrency = 1000,
+            )
         assertEquals(10000, largeContext.chunkSize)
         assertEquals(1000, largeContext.maxConcurrency)
 
         // Test edge case cache configurations
-        val edgeCacheConfig = FFetchCacheConfig(
-            noCache = true,
-            cacheOnly = true, // contradictory but should be allowed
-            maxAge = 0
-        )
+        val edgeCacheConfig =
+            FFetchCacheConfig(
+                noCache = true,
+                cacheOnly = true, // contradictory but should be allowed
+                maxAge = 0,
+            )
         assertTrue(edgeCacheConfig.noCache)
         assertTrue(edgeCacheConfig.cacheOnly)
         assertEquals(0, edgeCacheConfig.maxAge)
 
-        val negativeCacheConfig = FFetchCacheConfig(
-            maxAge = -1
-        )
+        val negativeCacheConfig =
+            FFetchCacheConfig(
+                maxAge = -1,
+            )
         assertEquals(-1, negativeCacheConfig.maxAge)
     }
 
@@ -159,12 +166,13 @@ class ConfigurationTest {
         assertEquals(original.maxConcurrency, chunkSizeOnly.maxConcurrency)
         assertEquals(original.sheetName, chunkSizeOnly.sheetName)
 
-        val multipleChanges = original.copy(
-            chunkSize = 75,
-            cacheReload = true,
-            sheetName = "multi-test",
-            maxConcurrency = 15
-        )
+        val multipleChanges =
+            original.copy(
+                chunkSize = 75,
+                cacheReload = true,
+                sheetName = "multi-test",
+                maxConcurrency = 15,
+            )
         assertEquals(75, multipleChanges.chunkSize)
         assertTrue(multipleChanges.cacheReload)
         assertEquals("multi-test", multipleChanges.sheetName)
@@ -175,11 +183,12 @@ class ConfigurationTest {
         val customHtmlParser = MockHTMLParser()
         val customCacheConfig = FFetchCacheConfig.CacheOnly
 
-        val complexCopy = original.copy(
-            httpClient = customHttpClient,
-            htmlParser = customHtmlParser,
-            cacheConfig = customCacheConfig
-        )
+        val complexCopy =
+            original.copy(
+                httpClient = customHttpClient,
+                htmlParser = customHtmlParser,
+                cacheConfig = customCacheConfig,
+            )
 
         assertEquals(customHttpClient, complexCopy.httpClient)
         assertEquals(customHtmlParser, complexCopy.htmlParser)
@@ -228,20 +237,23 @@ class ConfigurationTest {
 
     @Test
     fun `test configuration equality and hashCode`() {
-        val config1 = FFetchCacheConfig(
-            noCache = true,
-            maxAge = 3600
-        )
+        val config1 =
+            FFetchCacheConfig(
+                noCache = true,
+                maxAge = 3600,
+            )
 
-        val config2 = FFetchCacheConfig(
-            noCache = true,
-            maxAge = 3600
-        )
+        val config2 =
+            FFetchCacheConfig(
+                noCache = true,
+                maxAge = 3600,
+            )
 
-        val config3 = FFetchCacheConfig(
-            noCache = false,
-            maxAge = 3600
-        )
+        val config3 =
+            FFetchCacheConfig(
+                noCache = false,
+                maxAge = 3600,
+            )
 
         // Test equality
         assertEquals(config1, config2)
@@ -261,22 +273,22 @@ class ConfigurationTest {
     @Test
     fun `test mutable collections in FFetchContext`() {
         val context = FFetchContext()
-        
+
         // Test that allowedHosts is mutable
         assertTrue(context.allowedHosts.isEmpty())
-        
+
         context.allowedHosts.add("example.com")
         context.allowedHosts.add("api.example.com")
-        
+
         assertEquals(2, context.allowedHosts.size)
         assertTrue(context.allowedHosts.contains("example.com"))
         assertTrue(context.allowedHosts.contains("api.example.com"))
-        
+
         // Test copying preserves mutable collections
         val copied = context.copy(chunkSize = 100)
         assertEquals(2, copied.allowedHosts.size)
         assertTrue(copied.allowedHosts.contains("example.com"))
-        
+
         // Test that modifications to copy don't affect original
         copied.allowedHosts.add("secure.example.com")
         assertEquals(2, context.allowedHosts.size) // original unchanged
@@ -287,17 +299,18 @@ class ConfigurationTest {
     fun `test configuration with custom implementations`() {
         val customHttpClient = MockFFetchHTTPClient()
         val customHtmlParser = MockHTMLParser()
-        
-        val context = FFetchContext(
-            httpClient = customHttpClient,
-            htmlParser = customHtmlParser,
-            chunkSize = 150
-        )
-        
+
+        val context =
+            FFetchContext(
+                httpClient = customHttpClient,
+                htmlParser = customHtmlParser,
+                chunkSize = 150,
+            )
+
         assertEquals(customHttpClient, context.httpClient)
         assertEquals(customHtmlParser, context.htmlParser)
         assertEquals(150, context.chunkSize)
-        
+
         // Test copying with custom implementations
         val copied = context.copy(chunkSize = 300)
         assertEquals(customHttpClient, copied.httpClient) // preserved
@@ -309,13 +322,14 @@ class ConfigurationTest {
     fun `test backward compatibility fields`() {
         val context = FFetchContext(cacheReload = true)
         assertTrue(context.cacheReload)
-        
+
         // Test that cacheReload and cacheConfig can be used together
-        val withBothCacheSettings = context.copy(
-            cacheReload = false,
-            cacheConfig = FFetchCacheConfig.NoCache
-        )
-        
+        val withBothCacheSettings =
+            context.copy(
+                cacheReload = false,
+                cacheConfig = FFetchCacheConfig.NoCache,
+            )
+
         assertFalse(withBothCacheSettings.cacheReload)
         assertEquals(FFetchCacheConfig.NoCache, withBothCacheSettings.cacheConfig)
     }
