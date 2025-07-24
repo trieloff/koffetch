@@ -70,9 +70,11 @@ complexity:
   LargeClass:
     active: true
     threshold: 300
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
   LongMethod:
     active: true
     threshold: 50
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
   LongParameterList:
     active: true
     functionThreshold: 6
@@ -194,6 +196,7 @@ exceptions:
     allowedExceptionNameRegex: "^(_|(ignore|expected).*)"
   TooGenericExceptionThrown:
     active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     exceptionNames:
      - Error
      - Exception
@@ -436,6 +439,7 @@ style:
   ReturnCount:
     active: true
     max: 2
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     excludedFunctions: ['equals']
     excludeLabeled: false
     excludeReturnFromLambda: true
@@ -449,6 +453,7 @@ style:
   ThrowsCount:
     active: true
     max: 2
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
   TrailingWhitespace:
     active: false
   UnderscoresInNumericLiterals:
@@ -474,7 +479,16 @@ style:
   UnusedPrivateClass:
     active: false
   UnusedPrivateMember:
-    active: false
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
+    allowedNames: "(_|ignored|expected|serialVersionUID)"
+  UnusedParameter:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
+    allowedNames: "(_|ignored|expected|serialVersionUID)"
+  UnusedPrivateProperty:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
     allowedNames: "(_|ignored|expected|serialVersionUID)"
   UseArrayLiteralsInAnnotations:
     active: false
