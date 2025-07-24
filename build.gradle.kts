@@ -3,6 +3,8 @@ plugins {
     kotlin("plugin.serialization") version "1.9.24"
     jacoco
     `maven-publish`
+    id("io.gitlab.arturbosch.detekt") version "1.23.4"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
 }
 
 group = "com.terragon.kotlinffetch"
@@ -53,6 +55,47 @@ tasks.jacocoTestReport {
         html.required.set(true)
         csv.required.set(false)
     }
+}
+
+// Detekt configuration
+detekt {
+    toolVersion = "1.23.4"
+    config.setFrom(file("detekt.yml"))
+    buildUponDefaultConfig = true
+}
+
+// KtLint configuration
+ktlint {
+    version.set("1.0.1")
+    debug.set(false)
+    verbose.set(true)
+    android.set(false)
+    outputToConsole.set(true)
+    outputColorName.set("RED")
+    ignoreFailures.set(false)
+    enableExperimentalRules.set(true)
+    filter {
+        exclude("**/generated/**")
+        include("**/kotlin/**")
+    }
+}
+
+// Add linting tasks
+tasks.register("lint") {
+    dependsOn("ktlintCheck", "detekt")
+    description = "Run all linting checks"
+    group = "verification"
+}
+
+tasks.register("lintFix") {
+    dependsOn("ktlintFormat")
+    description = "Fix linting issues where possible"
+    group = "formatting"
+}
+
+// Make check depend on lint
+tasks.check {
+    dependsOn("lint")
 }
 
 publishing {
