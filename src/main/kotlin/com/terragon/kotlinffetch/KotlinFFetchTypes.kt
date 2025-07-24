@@ -23,6 +23,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -47,7 +48,22 @@ data class FFetchResponse(
     fun toFFetchEntries(): List<FFetchEntry> {
         return data.map { jsonObject ->
             jsonObject.entries.associate { (key, value) ->
-                key to value.toString().removeSurrounding("\"")
+                key to when (value) {
+                    is JsonPrimitive -> {
+                        if (value.isString) {
+                            // For string primitives, use the content directly 
+                            // This preserves escaped characters from JSON parsing
+                            value.content
+                        } else {
+                            // For non-string primitives, convert to string
+                            value.toString()
+                        }
+                    }
+                    else -> {
+                        // For non-primitives (arrays, objects), use toString and remove quotes
+                        value.toString().removeSurrounding("\"")
+                    }
+                }
             }
         }
     }
