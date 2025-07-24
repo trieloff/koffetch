@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.toList
-import live.aem.koffetch.*
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchEntry
 
 // MARK: - Collection Operations
 

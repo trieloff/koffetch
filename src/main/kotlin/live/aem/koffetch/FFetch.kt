@@ -7,8 +7,6 @@
 
 package live.aem.koffetch
 
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
