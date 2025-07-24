@@ -7,7 +7,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
 }
 
-group = "com.terragon.kotlinffetch"
+group = "live.aem.koffetch"
 version = "1.0.0"
 
 repositories {
@@ -101,7 +101,7 @@ tasks.check {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = "com.terragon.kotlinffetch"
+            groupId = "live.aem.koffetch"
             artifactId = "kotlin-ffetch"
             version = "1.0.0"
             
