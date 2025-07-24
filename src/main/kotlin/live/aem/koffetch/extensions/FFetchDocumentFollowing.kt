@@ -14,13 +14,12 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.supervisorScope
 import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchEntry
+import live.aem.koffetch.extensions.internal.*
 import java.net.URL
 
 // MARK: - Constants
 
 private const val HTTP_OK = 200
-private const val HTTP_DEFAULT_PORT = 80
-private const val HTTPS_DEFAULT_PORT = 443
 
 // MARK: - Document Following
 
@@ -118,21 +117,6 @@ private suspend fun FFetch.followDocument(
     }
 }
 
-// / Create security error entry for blocked hostname
-private fun createSecurityErrorEntry(
-    entry: FFetchEntry,
-    newFieldName: String,
-    hostname: String,
-): FFetchEntry {
-    return createErrorEntry(
-        entry = entry,
-        newFieldName = newFieldName,
-        error =
-            "Hostname '$hostname' is not allowed for document following. " +
-                "Use .allow() to permit additional hostnames.",
-    )
-}
-
 // / Fetch document data from resolved URL
 private suspend fun FFetch.fetchDocumentData(
     entry: FFetchEntry,
@@ -165,48 +149,6 @@ private suspend fun FFetch.fetchDocumentData(
     }
 }
 
-// / Check if URL string is valid for processing
-private fun isValidURLString(urlString: String): Boolean {
-    return !(
-        urlString.isBlank() ||
-            urlString.startsWith("://") ||
-            urlString.contains(" ") ||
-            isKnownInvalidPattern(urlString) ||
-            hasMalformedProtocol(urlString)
-    )
-}
-
-// / Check for known invalid URL patterns
-private fun isKnownInvalidPattern(urlString: String): Boolean {
-    return urlString == "not-a-valid-url" || urlString == "not-a-url"
-}
-
-// / Check for malformed protocol patterns
-private fun hasMalformedProtocol(urlString: String): Boolean {
-    return !urlString.startsWith("http://") &&
-        !urlString.startsWith("https://") &&
-        !urlString.startsWith("/") &&
-        urlString.contains("://")
-}
-
-// / Resolve document URL from string
-private fun FFetch.resolveDocumentURL(urlString: String): URL? {
-    return try {
-        if (!isValidURLString(urlString)) {
-            return null
-        }
-
-        val resolvedURL =
-            if (urlString.startsWith("http://") || urlString.startsWith("https://")) {
-                URL(urlString)
-            } else {
-                URL(url, urlString)
-            }
-        resolvedURL
-    } catch (e: Exception) {
-        null
-    }
-}
 
 // / Parse document data and return updated entry
 private fun FFetch.parseDocumentData(
@@ -230,52 +172,7 @@ private fun FFetch.parseDocumentData(
 }
 
 // / Create an entry with error information
-private fun createErrorEntry(
-    entry: FFetchEntry,
-    newFieldName: String,
-    error: String,
-): FFetchEntry {
-    return entry.toMutableMap().apply {
-        put(newFieldName, null)
-        put("${newFieldName}_error", error)
-    }
-}
 
-// / Check if hostname is allowed for document following
-private fun FFetch.isHostnameAllowed(url: URL): Boolean {
-    // Allow wildcard
-    if (context.allowedHosts.contains("*")) {
-        return true
-    }
-
-    // Allow if hostname matches any in the allowlist
-    // Include port number for security - different ports should be treated as different hostnames
-    val hostname = url.host
-    if (hostname == null) {
-        return false
-    }
-
-    val port = url.port
-    val defaultPort = getDefaultPort(url.protocol)
-
-    // For non-default ports, require explicit hostname:port permission
-    return if (port != -1 && port != defaultPort) {
-        val hostnameWithPort = "$hostname:$port"
-        context.allowedHosts.contains(hostnameWithPort)
-    } else {
-        // For default ports, check for hostname-only permission
-        context.allowedHosts.contains(hostname)
-    }
-}
-
-// / Get default port for protocol
-private fun getDefaultPort(protocol: String): Int {
-    return when (protocol.lowercase()) {
-        "http" -> HTTP_DEFAULT_PORT
-        "https" -> HTTPS_DEFAULT_PORT
-        else -> -1
-    }
-}
 
 // MARK: - Hostname Security Configuration
 
