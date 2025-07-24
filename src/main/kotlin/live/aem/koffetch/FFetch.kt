@@ -45,6 +45,10 @@ class FFetch(
     )
 
     companion object {
+        private const val HTTP_DEFAULT_PORT = 80
+        private const val HTTPS_DEFAULT_PORT = 443
+        private const val INVALID_PORT = -1
+
         // / Validates a URL string and throws FFetchError.InvalidURL if invalid
         private fun validateURLString(url: String) {
             // Check for empty or blank URLs
@@ -71,9 +75,9 @@ class FFetch(
         // / Get default port for protocol
         private fun getDefaultPort(protocol: String): Int {
             return when (protocol.lowercase()) {
-                "http" -> 80
-                "https" -> 443
-                else -> -1
+                "http" -> HTTP_DEFAULT_PORT
+                "https" -> HTTPS_DEFAULT_PORT
+                else -> INVALID_PORT
             }
         }
     }
@@ -84,7 +88,7 @@ class FFetch(
             val port = url.port
             val defaultPort = getDefaultPort(url.protocol)
 
-            if (port != -1 && port != defaultPort) {
+            if (port != INVALID_PORT && port != defaultPort) {
                 // For non-default ports, add hostname:port
                 context.allowedHosts.add("$hostname:$port")
             } else {

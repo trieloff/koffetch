@@ -217,59 +217,63 @@ class AEMResponseBuilder {
     /**
      * Add a blog post entry
      */
-    fun addBlogPost(
-        id: Int,
-        path: String,
-        title: String,
-        author: String,
-        publishedDate: String,
-        category: String,
-        featured: Boolean = false,
-    ): AEMResponseBuilder {
+    data class BlogPostData(
+        val id: Int,
+        val path: String,
+        val title: String,
+        val author: String,
+        val publishedDate: String,
+        val category: String,
+        val featured: Boolean = false,
+    )
+
+    fun addBlogPost(blogPost: BlogPostData): AEMResponseBuilder {
         val entry =
             mapOf(
-                "id" to id,
-                "path" to path,
-                "title" to title,
-                "author" to author,
-                "publishedDate" to publishedDate,
-                "category" to category,
-                "featured" to featured,
+                "id" to blogPost.id,
+                "path" to blogPost.path,
+                "title" to blogPost.title,
+                "author" to blogPost.author,
+                "publishedDate" to blogPost.publishedDate,
+                "category" to blogPost.category,
+                "featured" to blogPost.featured,
                 "template" to "blog-post",
-                "excerpt" to "This is an excerpt for $title",
-                "tags" to "blog,${category.lowercase().replace(" ", "-")}",
-                "readTime" to (5 + (id % 10)),
-                "lastModified" to (System.currentTimeMillis() - (id * 60000)),
+                "excerpt" to "This is an excerpt for ${blogPost.title}",
+                "tags" to "blog,${blogPost.category.lowercase().replace(" ", "-")}",
+                "readTime" to (5 + (blogPost.id % 10)),
+                "lastModified" to (System.currentTimeMillis() - (blogPost.id * 60000)),
             )
         data.add(entry)
         return this
     }
 
+    data class ProductData(
+        val id: Int,
+        val path: String,
+        val name: String,
+        val category: String,
+        val price: Double,
+        val inStock: Boolean = true,
+        val rating: Double = 4.0,
+    )
+
     /**
      * Add a product entry
      */
-    fun addProduct(
-        id: Int,
-        path: String,
-        name: String,
-        category: String,
-        price: Double,
-        inStock: Boolean = true,
-        rating: Double = 4.0,
-    ): AEMResponseBuilder {
+    fun addProduct(product: ProductData): AEMResponseBuilder {
         val entry =
             mapOf(
-                "id" to id,
-                "path" to path,
-                "name" to name,
-                "category" to category,
-                "price" to price,
-                "sku" to "SKU-${String.format("%05d", id)}",
-                "inStock" to inStock,
-                "stockQuantity" to if (inStock) 50 + (id % 100) else 0,
-                "rating" to rating,
-                "reviewCount" to (10 + (id % 200)),
-                "description" to "Description for $name",
+                "id" to product.id,
+                "path" to product.path,
+                "name" to product.name,
+                "category" to product.category,
+                "price" to product.price,
+                "sku" to "SKU-${String.format("%05d", product.id)}",
+                "inStock" to product.inStock,
+                "stockQuantity" to if (product.inStock) 50 + (product.id % 100) else 0,
+                "rating" to product.rating,
+                "reviewCount" to (10 + (product.id % 200)),
+                "description" to "Description for ${product.name}",
             )
         data.add(entry)
         return this

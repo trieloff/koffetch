@@ -85,35 +85,37 @@ private suspend fun FFetch.followDocument(
     fieldName: String,
     newFieldName: String,
 ): FFetchEntry {
-    val urlString =
-        entry[fieldName] as? String
-            ?: return createErrorEntry(
-                entry = entry,
-                newFieldName = newFieldName,
-                error = "Missing or invalid URL string in field '$fieldName'",
-            )
+    val urlString = entry[fieldName] as? String
+    if (urlString == null) {
+        return createErrorEntry(
+            entry = entry,
+            newFieldName = newFieldName,
+            error = "Missing or invalid URL string in field '$fieldName'",
+        )
+    }
 
-    val resolvedURL =
-        resolveDocumentURL(urlString)
-            ?: return createErrorEntry(
-                entry = entry,
-                newFieldName = newFieldName,
-                error = "Could not resolve URL from field '$fieldName': $urlString",
-            )
+    val resolvedURL = resolveDocumentURL(urlString)
+    if (resolvedURL == null) {
+        return createErrorEntry(
+            entry = entry,
+            newFieldName = newFieldName,
+            error = "Could not resolve URL from field '$fieldName': $urlString",
+        )
+    }
 
-    if (!isHostnameAllowed(resolvedURL)) {
-        return createSecurityErrorEntry(
+    return if (!isHostnameAllowed(resolvedURL)) {
+        createSecurityErrorEntry(
             entry = entry,
             newFieldName = newFieldName,
             hostname = resolvedURL.host ?: "unknown",
         )
+    } else {
+        fetchDocumentData(
+            entry = entry,
+            newFieldName = newFieldName,
+            resolvedURL = resolvedURL,
+        )
     }
-
-    return fetchDocumentData(
-        entry = entry,
-        newFieldName = newFieldName,
-        resolvedURL = resolvedURL,
-    )
 }
 
 // / Create security error entry for blocked hostname
@@ -141,19 +143,19 @@ private suspend fun FFetch.fetchDocumentData(
         val (data, response) = context.httpClient.fetch(resolvedURL.toString(), context.cacheConfig)
 
         if (response.status.value != HTTP_OK) {
-            return createErrorEntry(
+            createErrorEntry(
                 entry = entry,
                 newFieldName = newFieldName,
                 error = "HTTP error ${response.status.value} for $resolvedURL",
             )
+        } else {
+            parseDocumentData(
+                data = data,
+                entry = entry,
+                newFieldName = newFieldName,
+                resolvedURL = resolvedURL,
+            )
         }
-
-        return parseDocumentData(
-            data = data,
-            entry = entry,
-            newFieldName = newFieldName,
-            resolvedURL = resolvedURL,
-        )
     } catch (e: Exception) {
         createErrorEntry(
             entry = entry,
@@ -163,24 +165,34 @@ private suspend fun FFetch.fetchDocumentData(
     }
 }
 
+// / Check if URL string is valid for processing
+private fun isValidURLString(urlString: String): Boolean {
+    return !(
+        urlString.isBlank() ||
+            urlString.startsWith("://") ||
+            urlString.contains(" ") ||
+            isKnownInvalidPattern(urlString) ||
+            hasMalformedProtocol(urlString)
+    )
+}
+
+// / Check for known invalid URL patterns
+private fun isKnownInvalidPattern(urlString: String): Boolean {
+    return urlString == "not-a-valid-url" || urlString == "not-a-url"
+}
+
+// / Check for malformed protocol patterns
+private fun hasMalformedProtocol(urlString: String): Boolean {
+    return !urlString.startsWith("http://") &&
+        !urlString.startsWith("https://") &&
+        !urlString.startsWith("/") &&
+        urlString.contains("://")
+}
+
 // / Resolve document URL from string
 private fun FFetch.resolveDocumentURL(urlString: String): URL? {
     return try {
-        // Validate URL string - reject obviously invalid patterns
-        if (urlString.isBlank() ||
-            urlString.startsWith("://") ||
-            urlString.contains(" ") ||
-            // Specific patterns that are clearly invalid
-            urlString == "not-a-valid-url" ||
-            urlString == "not-a-url" ||
-            // Check for malformed protocol patterns
-            (
-                !urlString.startsWith("http://") &&
-                    !urlString.startsWith("https://") &&
-                    !urlString.startsWith("/") &&
-                    urlString.contains("://")
-            ) // Has protocol separator but not at start
-        ) {
+        if (!isValidURLString(urlString)) {
             return null
         }
 
@@ -238,18 +250,22 @@ private fun FFetch.isHostnameAllowed(url: URL): Boolean {
 
     // Allow if hostname matches any in the allowlist
     // Include port number for security - different ports should be treated as different hostnames
-    val hostname = url.host ?: return false
+    val hostname = url.host
+    if (hostname == null) {
+        return false
+    }
+
     val port = url.port
     val defaultPort = getDefaultPort(url.protocol)
 
     // For non-default ports, require explicit hostname:port permission
-    if (port != -1 && port != defaultPort) {
+    return if (port != -1 && port != defaultPort) {
         val hostnameWithPort = "$hostname:$port"
-        return context.allowedHosts.contains(hostnameWithPort)
+        context.allowedHosts.contains(hostnameWithPort)
+    } else {
+        // For default ports, check for hostname-only permission
+        context.allowedHosts.contains(hostname)
     }
-
-    // For default ports, check for hostname-only permission
-    return context.allowedHosts.contains(hostname)
 }
 
 // / Get default port for protocol
