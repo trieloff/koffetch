@@ -200,7 +200,7 @@ data class FFetchCacheConfig(
 
 /**
  * Interface for HTTP client abstraction.
- * 
+ *
  * This interface allows for customization of HTTP request handling, enabling
  * different implementations for authentication, custom headers, or specialized
  * HTTP behavior while maintaining compatibility with the FFetch API.
