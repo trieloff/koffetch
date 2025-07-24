@@ -200,14 +200,14 @@ private fun FFetch.isHostnameAllowed(url: URL): Boolean {
     val port = url.port
     val defaultPort = getDefaultPort(url.protocol)
     
-    // Create hostname with port only if it's not the default port
-    val hostnameWithPort = if (port != -1 && port != defaultPort) {
-        "$hostname:$port"
-    } else {
-        hostname
+    // For non-default ports, require explicit hostname:port permission
+    if (port != -1 && port != defaultPort) {
+        val hostnameWithPort = "$hostname:$port"
+        return context.allowedHosts.contains(hostnameWithPort)
     }
     
-    return context.allowedHosts.contains(hostnameWithPort)
+    // For default ports, check for hostname-only permission
+    return context.allowedHosts.contains(hostname)
 }
 
 /// Get default port for protocol

@@ -60,11 +60,31 @@ class FFetch(
                 throw FFetchError.InvalidURL(url)
             }
         }
+        
+        /// Get default port for protocol
+        private fun getDefaultPort(protocol: String): Int {
+            return when (protocol.lowercase()) {
+                "http" -> 80
+                "https" -> 443
+                else -> -1
+            }
+        }
     }
     
     init {
-        // Always add the current URL's hostname to allowed hosts
-        url.host?.let { context.allowedHosts.add(it) }
+        // Add the URL's hostname or hostname:port to allowed hosts based on the port
+        url.host?.let { hostname ->
+            val port = url.port
+            val defaultPort = getDefaultPort(url.protocol)
+            
+            if (port != -1 && port != defaultPort) {
+                // For non-default ports, add hostname:port
+                context.allowedHosts.add("${hostname}:${port}")
+            } else {
+                // For default ports, add hostname only
+                context.allowedHosts.add(hostname)
+            }
+        }
     }
     
     /// Create the main data flow
