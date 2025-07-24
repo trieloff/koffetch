@@ -51,9 +51,9 @@ data class FFetchResponse(
                 key to when (value) {
                     is JsonPrimitive -> {
                         if (value.isString) {
-                            // For string primitives, use the content directly 
-                            // This preserves escaped characters from JSON parsing
-                            value.content
+                            // For string primitives, use the content and remove surrounding quotes if they exist
+                            // This handles cases like "\"Quoted Title\"" where the content still has quotes
+                            value.content.removeSurrounding("\"")
                         } else {
                             // For non-string primitives, convert to string
                             value.toString()
