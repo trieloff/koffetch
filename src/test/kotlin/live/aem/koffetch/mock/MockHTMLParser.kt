@@ -16,48 +16,47 @@ import org.jsoup.nodes.Document
  * Provides error simulation and call tracking
  */
 class MockHTMLParser : FFetchHTMLParser {
-    
     // Call tracking
     private val _parseHistory = mutableListOf<String>()
     val parseHistory: List<String> get() = _parseHistory.toList()
     var parseCallCount: Int = 0
         private set
-    
+
     var lastParsedHtml: String? = null
         private set
-    
+
     var lastParsedDocument: Document? = null
         private set
-    
+
     // Error simulation
     var shouldThrowError: Boolean = false
     var errorMessage: String = "Mock HTML parsing error"
     var errorAfterCalls: Int = -1 // Throw error after N successful calls (-1 = disabled)
-    
+
     // Response customization
     private var _customParseResult: Document? = null
-    
+
     override fun parse(html: String): Document {
         parseCallCount++
         lastParsedHtml = html
         _parseHistory.add(html)
-        
+
         // Check if we should throw error after N calls
         if (errorAfterCalls >= 0 && parseCallCount > errorAfterCalls) {
             throw RuntimeException(errorMessage)
         }
-        
+
         // Check if we should throw error immediately
         if (shouldThrowError) {
             throw RuntimeException(errorMessage)
         }
-        
+
         // Return custom result if provided
-        _customParseResult?.let { 
+        _customParseResult?.let {
             lastParsedDocument = it
             return it
         }
-        
+
         // Default behavior: use real Jsoup parser
         return try {
             val document = Jsoup.parse(html)
@@ -67,9 +66,9 @@ class MockHTMLParser : FFetchHTMLParser {
             throw RuntimeException("HTML parsing failed: ${e.message}", e)
         }
     }
-    
+
     // Configuration methods
-    
+
     /**
      * Reset all state and configuration
      */
@@ -83,7 +82,7 @@ class MockHTMLParser : FFetchHTMLParser {
         errorAfterCalls = -1
         _customParseResult = null
     }
-    
+
     /**
      * Configure the parser to throw an error on the next parse call
      */
@@ -91,27 +90,34 @@ class MockHTMLParser : FFetchHTMLParser {
         shouldThrowError = true
         errorMessage = message
     }
-    
+
     /**
      * Configure the parser to throw an error after N successful parse calls
      */
-    fun throwErrorAfter(callCount: Int, message: String = "Mock HTML parsing error") {
+    fun throwErrorAfter(
+        callCount: Int,
+        message: String = "Mock HTML parsing error",
+    ) {
         errorAfterCalls = callCount
         errorMessage = message
     }
-    
+
     /**
      * Configure the parser to return a specific document for all parse calls
      */
     fun setCustomParseResult(document: Document) {
         _customParseResult = document
     }
-    
+
     /**
      * Create a simple mock document with basic structure
      */
-    fun createSimpleDocument(title: String, content: String): Document {
-        val html = """
+    fun createSimpleDocument(
+        title: String,
+        content: String,
+    ): Document {
+        val html =
+            """
             <html>
                 <head><title>$title</title></head>
                 <body>
@@ -119,16 +125,17 @@ class MockHTMLParser : FFetchHTMLParser {
                     <div class="content">$content</div>
                 </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         return Jsoup.parse(html)
     }
-    
+
     /**
      * Create a complex mock document with various HTML elements
      */
     fun createComplexDocument(): Document {
-        val html = """
+        val html =
+            """
             <html>
                 <head>
                     <title>Complex Test Document</title>
@@ -167,11 +174,11 @@ class MockHTMLParser : FFetchHTMLParser {
                     </footer>
                 </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         return Jsoup.parse(html)
     }
-    
+
     /**
      * Create a malformed HTML document for testing error scenarios
      */
@@ -193,9 +200,9 @@ class MockHTMLParser : FFetchHTMLParser {
                             <td>Another incomplete row
                     </table>
             </html>
-        """.trimIndent()
+            """.trimIndent()
     }
-    
+
     /**
      * Get statistics about parsing calls
      */
@@ -203,20 +210,23 @@ class MockHTMLParser : FFetchHTMLParser {
         return MockParsingStats(
             totalCalls = parseCallCount,
             uniqueHtmlDocuments = _parseHistory.toSet().size,
-            averageHtmlLength = if (_parseHistory.isNotEmpty()) {
-                _parseHistory.sumOf { it.length }.toDouble() / _parseHistory.size
-            } else 0.0,
-            hasEncounteredErrors = shouldThrowError || errorAfterCalls >= 0
+            averageHtmlLength =
+                if (_parseHistory.isNotEmpty()) {
+                    _parseHistory.sumOf { it.length }.toDouble() / _parseHistory.size
+                } else {
+                    0.0
+                },
+            hasEncounteredErrors = shouldThrowError || errorAfterCalls >= 0,
         )
     }
-    
+
     /**
      * Verify that specific HTML content was parsed
      */
     fun wasHtmlParsed(htmlFragment: String): Boolean {
         return _parseHistory.any { it.contains(htmlFragment) }
     }
-    
+
     /**
      * Verify that parsing was attempted with HTML containing specific elements
      */
@@ -239,5 +249,5 @@ data class MockParsingStats(
     val totalCalls: Int,
     val uniqueHtmlDocuments: Int,
     val averageHtmlLength: Double,
-    val hasEncounteredErrors: Boolean
+    val hasEncounteredErrors: Boolean,
 )

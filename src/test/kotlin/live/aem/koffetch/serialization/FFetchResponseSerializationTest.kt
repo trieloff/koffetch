@@ -16,25 +16,24 @@
 
 package live.aem.koffetch.serialization
 
-import live.aem.koffetch.FFetchResponse
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import live.aem.koffetch.FFetchResponse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class FFetchResponseSerializationTest {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
     fun `test complete response deserialization with various structures`() {
-        val jsonString = """
+        val jsonString =
+            """
             {
                 "total": 150,
                 "offset": 0,
@@ -57,7 +56,7 @@ class FFetchResponseSerializationTest {
                     }
                 ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(jsonString)
 
@@ -65,7 +64,7 @@ class FFetchResponseSerializationTest {
         assertEquals(0, response.offset)
         assertEquals(50, response.limit)
         assertEquals(2, response.data.size)
-        
+
         val firstEntry = response.data[0]
         assertEquals("Article 1", (firstEntry["title"] as JsonPrimitive).content)
         assertEquals("John Doe", (firstEntry["author"] as JsonPrimitive).content)
@@ -73,7 +72,8 @@ class FFetchResponseSerializationTest {
 
     @Test
     fun `test missing optional fields handling`() {
-        val jsonString = """
+        val jsonString =
+            """
             {
                 "total": 100,
                 "offset": 10,
@@ -84,7 +84,7 @@ class FFetchResponseSerializationTest {
                     }
                 ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(jsonString)
 
@@ -92,7 +92,7 @@ class FFetchResponseSerializationTest {
         assertEquals(10, response.offset)
         assertEquals(25, response.limit)
         assertEquals(1, response.data.size)
-        
+
         val entry = response.data[0]
         assertEquals("Minimal Entry", (entry["title"] as JsonPrimitive).content)
         assertEquals(1, entry.size)
@@ -100,7 +100,8 @@ class FFetchResponseSerializationTest {
 
     @Test
     fun `test extra unexpected fields (forward compatibility)`() {
-        val jsonString = """
+        val jsonString =
+            """
             {
                 "total": 50,
                 "offset": 0,
@@ -117,7 +118,7 @@ class FFetchResponseSerializationTest {
                     "version": "2.0"
                 }
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(jsonString)
 
@@ -125,7 +126,7 @@ class FFetchResponseSerializationTest {
         assertEquals(0, response.offset)
         assertEquals(10, response.limit)
         assertEquals(1, response.data.size)
-        
+
         val entry = response.data[0]
         assertEquals("Test Article", (entry["title"] as JsonPrimitive).content)
         assertEquals("some value", (entry["futureField"] as JsonPrimitive).content)
@@ -134,7 +135,8 @@ class FFetchResponseSerializationTest {
 
     @Test
     fun `test array vs object confusion scenarios`() {
-        val jsonString = """
+        val jsonString =
+            """
             {
                 "total": 1,
                 "offset": 0,
@@ -152,11 +154,11 @@ class FFetchResponseSerializationTest {
                     }
                 ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(jsonString)
         val entry = response.data[0]
-        
+
         assertTrue(entry["stringField"] is JsonPrimitive)
         assertTrue(entry["numberField"] is JsonPrimitive)
         assertTrue(entry["booleanField"] is JsonPrimitive)
@@ -166,42 +168,44 @@ class FFetchResponseSerializationTest {
 
     @Test
     fun `test toFFetchEntries conversion with edge cases`() {
-        val response = FFetchResponse(
-            total = 3,
-            offset = 0,
-            limit = 3,
-            data = listOf(
-                buildJsonObject {
-                    put("title", "\"Quoted Title\"")
-                    put("description", "Normal text")
-                    put("number", 42)
-                    put("boolean", true)
-                },
-                buildJsonObject {
-                    put("emptyString", "")
-                    put("whitespace", "   ")
-                },
-                buildJsonObject {
-                    put("specialChars", "Hello\nWorld\t!")
-                    put("unicode", "🚀 Kotlin")
-                }
+        val response =
+            FFetchResponse(
+                total = 3,
+                offset = 0,
+                limit = 3,
+                data =
+                    listOf(
+                        buildJsonObject {
+                            put("title", "\"Quoted Title\"")
+                            put("description", "Normal text")
+                            put("number", 42)
+                            put("boolean", true)
+                        },
+                        buildJsonObject {
+                            put("emptyString", "")
+                            put("whitespace", "   ")
+                        },
+                        buildJsonObject {
+                            put("specialChars", "Hello\nWorld\t!")
+                            put("unicode", "🚀 Kotlin")
+                        },
+                    ),
             )
-        )
 
         val entries = response.toFFetchEntries()
 
         assertEquals(3, entries.size)
-        
+
         // First entry
         assertEquals("Quoted Title", entries[0]["title"])
         assertEquals("Normal text", entries[0]["description"])
         assertEquals("42", entries[0]["number"])
         assertEquals("true", entries[0]["boolean"])
-        
+
         // Second entry
         assertEquals("", entries[1]["emptyString"])
         assertEquals("   ", entries[1]["whitespace"])
-        
+
         // Third entry
         assertEquals("Hello\nWorld\t!", entries[2]["specialChars"])
         assertEquals("🚀 Kotlin", entries[2]["unicode"])
@@ -209,14 +213,15 @@ class FFetchResponseSerializationTest {
 
     @Test
     fun `test serializer behavior with empty data array`() {
-        val jsonString = """
+        val jsonString =
+            """
             {
                 "total": 0,
                 "offset": 0,
                 "limit": 10,
                 "data": []
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(jsonString)
 
@@ -224,27 +229,29 @@ class FFetchResponseSerializationTest {
         assertEquals(0, response.offset)
         assertEquals(10, response.limit)
         assertEquals(0, response.data.size)
-        
+
         val entries = response.toFFetchEntries()
         assertEquals(0, entries.size)
     }
 
     @Test
     fun `test large response deserialization`() {
-        val dataEntries = (1..1000).map { index ->
-            buildJsonObject {
-                put("id", index)
-                put("title", "Article $index")
-                put("content", "This is the content of article number $index")
+        val dataEntries =
+            (1..1000).map { index ->
+                buildJsonObject {
+                    put("id", index)
+                    put("title", "Article $index")
+                    put("content", "This is the content of article number $index")
+                }
             }
-        }
 
-        val response = FFetchResponse(
-            total = 1000,
-            offset = 0,
-            limit = 1000,
-            data = dataEntries
-        )
+        val response =
+            FFetchResponse(
+                total = 1000,
+                offset = 0,
+                limit = 1000,
+                data = dataEntries,
+            )
 
         val entries = response.toFFetchEntries()
         assertEquals(1000, entries.size)
@@ -254,7 +261,8 @@ class FFetchResponseSerializationTest {
 
     @Test
     fun `test nested object serialization behavior`() {
-        val jsonString = """
+        val jsonString =
+            """
             {
                 "total": 1,
                 "offset": 0,
@@ -271,11 +279,11 @@ class FFetchResponseSerializationTest {
                     }
                 ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(jsonString)
         val entry = response.data[0]
-        
+
         assertTrue(entry["metadata"] is JsonObject)
         val metadata = entry["metadata"] as JsonObject
         assertTrue(metadata["author"] is JsonObject)
@@ -284,14 +292,15 @@ class FFetchResponseSerializationTest {
 
     @Test
     fun `test malformed JSON handling`() {
-        val invalidJsonString = """
+        val invalidJsonString =
+            """
             {
                 "total": "not a number",
                 "offset": 0,
                 "limit": 10,
                 "data": []
             }
-        """.trimIndent()
+            """.trimIndent()
 
         assertThrows<kotlinx.serialization.SerializationException> {
             json.decodeFromString<FFetchResponse>(invalidJsonString)
@@ -300,7 +309,8 @@ class FFetchResponseSerializationTest {
 
     @Test
     fun `test response with null values in data`() {
-        val jsonString = """
+        val jsonString =
+            """
             {
                 "total": 2,
                 "offset": 0,
@@ -317,7 +327,7 @@ class FFetchResponseSerializationTest {
                     }
                 ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(jsonString)
         val entries = response.toFFetchEntries()

@@ -16,33 +16,32 @@
 
 package live.aem.koffetch.serialization
 
-import live.aem.koffetch.FFetchResponse
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import live.aem.koffetch.FFetchResponse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class RealWorldDataTest {
-
     @OptIn(ExperimentalSerializationApi::class)
-    private val json = Json { 
-        ignoreUnknownKeys = true
-        isLenient = true
-        allowTrailingComma = true
-    }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            allowTrailingComma = true
+        }
 
     @Test
     fun `test with actual AEM response structures`() {
-        val aemResponseJson = """
+        val aemResponseJson =
+            """
             {
                 "total": 1250,
                 "offset": 0,
@@ -103,7 +102,7 @@ class RealWorldDataTest {
                     }
                 ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(aemResponseJson)
         assertEquals(1250, response.total)
@@ -125,7 +124,8 @@ class RealWorldDataTest {
     @Test
     fun `test with malformed but recoverable JSON`() {
         // Test with trailing commas and extra whitespace
-        val malformedJson = """
+        val malformedJson =
+            """
             {
                 "total": 50,
                 "offset": 0,
@@ -142,7 +142,7 @@ class RealWorldDataTest {
                     }
                 ],
             }
-        """.trimIndent()
+            """.trimIndent()
 
         // With lenient parsing, this should work
         val response = json.decodeFromString<FFetchResponse>(malformedJson)
@@ -156,36 +156,38 @@ class RealWorldDataTest {
 
     @Test
     fun `test with very deeply nested objects`() {
-        val deeplyNestedResponse = FFetchResponse(
-            total = 1,
-            offset = 0,
-            limit = 1,
-            data = listOf(
-                buildJsonObject {
-                    put("id", "deep-test")
-                    putJsonObject("level1") {
-                        putJsonObject("level2") {
-                            putJsonObject("level3") {
-                                putJsonObject("level4") {
-                                    putJsonObject("level5") {
-                                        put("deepValue", "found at level 5")
-                                        putJsonArray("deepArray") {
-                                            add(JsonPrimitive("item1"))
-                                            add(JsonPrimitive("item2"))
+        val deeplyNestedResponse =
+            FFetchResponse(
+                total = 1,
+                offset = 0,
+                limit = 1,
+                data =
+                    listOf(
+                        buildJsonObject {
+                            put("id", "deep-test")
+                            putJsonObject("level1") {
+                                putJsonObject("level2") {
+                                    putJsonObject("level3") {
+                                        putJsonObject("level4") {
+                                            putJsonObject("level5") {
+                                                put("deepValue", "found at level 5")
+                                                putJsonArray("deepArray") {
+                                                    add(JsonPrimitive("item1"))
+                                                    add(JsonPrimitive("item2"))
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                    }
-                }
+                        },
+                    ),
             )
-        )
 
         val entries = deeplyNestedResponse.toFFetchEntries()
         assertEquals(1, entries.size)
         assertEquals("deep-test", entries[0]["id"])
-        
+
         // The nested object should be serialized as a string
         val level1String = entries[0]["level1"] as String
         assertTrue(level1String.contains("level2"))
@@ -195,23 +197,25 @@ class RealWorldDataTest {
     @Test
     fun `test with extremely large string values`() {
         val largeContent = "Lorem ipsum ".repeat(10000) // ~110KB string
-        val response = FFetchResponse(
-            total = 1,
-            offset = 0,
-            limit = 1,
-            data = listOf(
-                buildJsonObject {
-                    put("id", "large-content-test")
-                    put("title", "Article with Large Content")
-                    put("content", largeContent)
-                    put("summary", "This article has very large content")
-                }
+        val response =
+            FFetchResponse(
+                total = 1,
+                offset = 0,
+                limit = 1,
+                data =
+                    listOf(
+                        buildJsonObject {
+                            put("id", "large-content-test")
+                            put("title", "Article with Large Content")
+                            put("content", largeContent)
+                            put("summary", "This article has very large content")
+                        },
+                    ),
             )
-        )
 
         val entries = response.toFFetchEntries()
         assertEquals(1, entries.size)
-        
+
         val contentValue = entries[0]["content"] as String
         assertTrue(contentValue.length > 100000)
         assertTrue(contentValue.startsWith("Lorem ipsum"))
@@ -220,33 +224,35 @@ class RealWorldDataTest {
 
     @Test
     fun `test with various character encodings`() {
-        val unicodeResponse = FFetchResponse(
-            total = 4,
-            offset = 0,
-            limit = 4,
-            data = listOf(
-                buildJsonObject {
-                    put("language", "english")
-                    put("text", "Hello World!")
-                    put("emoji", "👋🌍")
-                },
-                buildJsonObject {
-                    put("language", "japanese")
-                    put("text", "こんにちは世界")
-                    put("emoji", "🇯🇵")
-                },
-                buildJsonObject {
-                    put("language", "arabic")
-                    put("text", "مرحبا بالعالم")
-                    put("emoji", "🇸🇦")
-                },
-                buildJsonObject {
-                    put("language", "chinese")
-                    put("text", "你好世界")
-                    put("emoji", "🇨🇳")
-                }
+        val unicodeResponse =
+            FFetchResponse(
+                total = 4,
+                offset = 0,
+                limit = 4,
+                data =
+                    listOf(
+                        buildJsonObject {
+                            put("language", "english")
+                            put("text", "Hello World!")
+                            put("emoji", "👋🌍")
+                        },
+                        buildJsonObject {
+                            put("language", "japanese")
+                            put("text", "こんにちは世界")
+                            put("emoji", "🇯🇵")
+                        },
+                        buildJsonObject {
+                            put("language", "arabic")
+                            put("text", "مرحبا بالعالم")
+                            put("emoji", "🇸🇦")
+                        },
+                        buildJsonObject {
+                            put("language", "chinese")
+                            put("text", "你好世界")
+                            put("emoji", "🇨🇳")
+                        },
+                    ),
             )
-        )
 
         val entries = unicodeResponse.toFFetchEntries()
         assertEquals(4, entries.size)
@@ -263,7 +269,8 @@ class RealWorldDataTest {
 
     @Test
     fun `test with mixed data types in arrays`() {
-        val mixedArrayJson = """
+        val mixedArrayJson =
+            """
             {
                 "total": 1,
                 "offset": 0,
@@ -290,19 +297,19 @@ class RealWorldDataTest {
                     }
                 ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(mixedArrayJson)
         val entries = response.toFFetchEntries()
-        
+
         assertEquals(1, entries.size)
         val entry = entries[0]
-        
+
         // Arrays and objects should be converted to strings
         assertTrue(entry["mixedArray"] is String)
         assertTrue(entry["tags"] is String)
         assertTrue(entry["metadata"] is String)
-        
+
         val mixedArrayString = entry["mixedArray"] as String
         assertTrue(mixedArrayString.contains("string value"))
         assertTrue(mixedArrayString.contains("42"))
@@ -311,13 +318,14 @@ class RealWorldDataTest {
 
     @Test
     fun `test error handling with completely invalid JSON`() {
-        val invalidJson = """
+        val invalidJson =
+            """
             {
                 "total": "this should be a number"
                 "offset": missing comma
                 "invalid": json
             }
-        """.trimIndent()
+            """.trimIndent()
 
         assertThrows<kotlinx.serialization.SerializationException> {
             json.decodeFromString<FFetchResponse>(invalidJson)
@@ -327,37 +335,45 @@ class RealWorldDataTest {
     @Test
     fun `test performance with realistic AEM dataset`() {
         // Create a realistic dataset similar to what AEM might return
-        val realisticDataEntries = (1..500).map { index ->
-            buildJsonObject {
-                put("path", "/content/site/articles/article-$index")
-                put("title", "Article $index: ${generateTitle(index)}")
-                put("description", "This is the description for article number $index")
-                put("author", "Author ${index % 20}")
-                put("publishDate", "2024-01-${(index % 28) + 1}T${(index % 24).toString().padStart(2, '0')}:00:00.000Z")
-                put("lastModified", "2024-01-${(index % 28) + 1}T${(index % 24).toString().padStart(2, '0')}:30:00.000Z")
-                putJsonArray("tags") {
-                    add(JsonPrimitive("tag${index % 10}"))
-                    add(JsonPrimitive("category${index % 5}"))
-                    if (index % 3 == 0) add(JsonPrimitive("featured"))
+        val realisticDataEntries =
+            (1..500).map { index ->
+                buildJsonObject {
+                    put("path", "/content/site/articles/article-$index")
+                    put("title", "Article $index: ${generateTitle(index)}")
+                    put("description", "This is the description for article number $index")
+                    put("author", "Author ${index % 20}")
+                    put(
+                        "publishDate",
+                        "2024-01-${(index % 28) + 1}T${(index % 24).toString().padStart(2, '0')}:00:00.000Z",
+                    )
+                    put(
+                        "lastModified",
+                        "2024-01-${(index % 28) + 1}T${(index % 24).toString().padStart(2, '0')}:30:00.000Z",
+                    )
+                    putJsonArray("tags") {
+                        add(JsonPrimitive("tag${index % 10}"))
+                        add(JsonPrimitive("category${index % 5}"))
+                        if (index % 3 == 0) add(JsonPrimitive("featured"))
+                    }
+                    putJsonObject("metadata") {
+                        put("template", "article-template")
+                        put("language", if (index % 4 == 0) "en" else "es")
+                        put("region", if (index % 2 == 0) "global" else "regional")
+                    }
+                    put("status", if (index % 10 == 0) "draft" else "published")
+                    put("featured", index % 7 == 0)
+                    put("readTime", (index % 15) + 3)
+                    put("viewCount", index * 47)
                 }
-                putJsonObject("metadata") {
-                    put("template", "article-template")
-                    put("language", if (index % 4 == 0) "en" else "es")
-                    put("region", if (index % 2 == 0) "global" else "regional")
-                }
-                put("status", if (index % 10 == 0) "draft" else "published")
-                put("featured", index % 7 == 0)
-                put("readTime", (index % 15) + 3)
-                put("viewCount", index * 47)
             }
-        }
 
-        val response = FFetchResponse(
-            total = 500,
-            offset = 0,
-            limit = 500,
-            data = realisticDataEntries
-        )
+        val response =
+            FFetchResponse(
+                total = 500,
+                offset = 0,
+                limit = 500,
+                data = realisticDataEntries,
+            )
 
         val startTime = System.currentTimeMillis()
         val entries = response.toFFetchEntries()
@@ -379,7 +395,8 @@ class RealWorldDataTest {
 
     @Test
     fun `test with real-world edge cases from AEM`() {
-        val edgeCaseJson = """
+        val edgeCaseJson =
+            """
             {
                 "total": 3,
                 "offset": 0,
@@ -408,7 +425,7 @@ class RealWorldDataTest {
                     }
                 ]
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val response = json.decodeFromString<FFetchResponse>(edgeCaseJson)
         val entries = response.toFFetchEntries()
@@ -435,11 +452,12 @@ class RealWorldDataTest {
     }
 
     private fun generateTitle(index: Int): String {
-        val topics = listOf(
-            "Web Development", "Mobile Apps", "Data Science", "Machine Learning",
-            "Cloud Computing", "Cybersecurity", "DevOps", "AI Ethics", "Blockchain",
-            "Software Architecture"
-        )
+        val topics =
+            listOf(
+                "Web Development", "Mobile Apps", "Data Science", "Machine Learning",
+                "Cloud Computing", "Cybersecurity", "DevOps", "AI Ethics", "Blockchain",
+                "Software Architecture",
+            )
         return topics[index % topics.size]
     }
 }

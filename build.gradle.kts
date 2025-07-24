@@ -17,22 +17,22 @@ repositories {
 dependencies {
     // Core Kotlin
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    
+
     // Coroutines for async/await functionality
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    
+
     // HTTP client (equivalent to URLSession)
     implementation("io.ktor:ktor-client-core:2.3.7")
     implementation("io.ktor:ktor-client-cio:2.3.7")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.7")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
-    
+
     // HTML parsing
     implementation("org.jsoup:jsoup:1.17.2")
-    
+
     // JSON handling
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-    
+
     // Testing
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
@@ -73,7 +73,7 @@ ktlint {
     outputToConsole.set(true)
     outputColorName.set("RED")
     ignoreFailures.set(false)
-    enableExperimentalRules.set(true)
+    enableExperimentalRules.set(false)
     filter {
         exclude("**/generated/**")
         include("**/kotlin/**")
@@ -104,14 +104,14 @@ publishing {
             groupId = "live.aem.koffetch"
             artifactId = "kotlin-ffetch"
             version = "1.0.0"
-            
+
             from(components["java"])
-            
+
             pom {
                 name.set("KotlinFFetch")
                 description.set("A Kotlin library for fetching and processing content from AEM (.live) Content APIs")
                 url.set("https://github.com/terragon/kotlin-ffetch")
-                
+
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
