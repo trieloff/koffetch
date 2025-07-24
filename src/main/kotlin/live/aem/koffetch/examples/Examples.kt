@@ -150,9 +150,10 @@ object Examples {
     // / Example: Custom configuration
     fun customConfiguration() =
         runBlocking {
+            // Cache for 1 hour regardless of server headers
             val customConfig =
                 FFetchCacheConfig(
-                    maxAge = 3600, // Cache for 1 hour regardless of server headers
+                    maxAge = 3600,
                 )
 
             val data =

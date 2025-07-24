@@ -24,7 +24,8 @@ class FFetchRequestHandlerTest {
         mockHttpClient = MockFFetchHTTPClient()
         context =
             FFetchContext(
-                chunkSize = 10, // Small chunk size for testing pagination
+                // Small chunk size for testing pagination
+                chunkSize = 10,
                 httpClient = mockHttpClient,
             )
     }

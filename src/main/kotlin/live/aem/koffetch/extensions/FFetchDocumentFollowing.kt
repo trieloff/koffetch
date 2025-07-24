@@ -16,6 +16,12 @@ import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchEntry
 import java.net.URL
 
+// MARK: - Constants
+
+private const val HTTP_OK = 200
+private const val HTTP_DEFAULT_PORT = 80
+private const val HTTPS_DEFAULT_PORT = 443
+
 // MARK: - Document Following
 
 // / Follow references to fetch HTML documents
@@ -125,7 +131,7 @@ private suspend fun FFetch.fetchDocumentData(
     return try {
         val (data, response) = context.httpClient.fetch(resolvedURL.toString(), context.cacheConfig)
 
-        if (response.status.value != 200) {
+        if (response.status.value != HTTP_OK) {
             return createErrorEntry(
                 entry = entry,
                 newFieldName = newFieldName,
@@ -240,8 +246,8 @@ private fun FFetch.isHostnameAllowed(url: URL): Boolean {
 // / Get default port for protocol
 private fun getDefaultPort(protocol: String): Int {
     return when (protocol.lowercase()) {
-        "http" -> 80
-        "https" -> 443
+        "http" -> HTTP_DEFAULT_PORT
+        "https" -> HTTPS_DEFAULT_PORT
         else -> -1
     }
 }

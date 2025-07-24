@@ -162,8 +162,10 @@ class CachePolicyTest {
             listOf(
                 FFetchCacheConfig(maxAge = 0L),
                 FFetchCacheConfig(maxAge = 1L),
-                FFetchCacheConfig(maxAge = 86400L), // 1 day
-                FFetchCacheConfig(maxAge = 604800L), // 1 week
+                // 1 day
+                FFetchCacheConfig(maxAge = 86400L),
+                // 1 week
+                FFetchCacheConfig(maxAge = 604800L),
                 FFetchCacheConfig(maxAge = Long.MAX_VALUE),
             )
 

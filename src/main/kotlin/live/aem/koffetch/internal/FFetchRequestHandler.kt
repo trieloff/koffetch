@@ -18,6 +18,8 @@ import java.net.URL
 
 // / Internal class to handle HTTP requests and pagination
 internal object FFetchRequestHandler {
+    private const val HTTP_OK = 200
+    private const val HTTP_NOT_FOUND = 404
     @OptIn(ExperimentalSerializationApi::class)
     private val json =
         Json {
@@ -119,8 +121,8 @@ internal object FFetchRequestHandler {
     // / Validate HTTP response status
     private fun validateHTTPResponse(response: HttpResponse) {
         when (response.status.value) {
-            200 -> return // OK
-            404 -> throw FFetchError.DocumentNotFound
+            HTTP_OK -> return // OK
+            HTTP_NOT_FOUND -> throw FFetchError.DocumentNotFound
             else -> throw FFetchError.NetworkError(
                 RuntimeException("HTTP ${response.status.value}: ${response.status.description}"),
             )

@@ -142,7 +142,8 @@ class ConfigurationTest {
         val edgeCacheConfig =
             FFetchCacheConfig(
                 noCache = true,
-                cacheOnly = true, // contradictory but should be allowed
+                // contradictory but should be allowed
+                cacheOnly = true,
                 maxAge = 0,
             )
         assertTrue(edgeCacheConfig.noCache)
