@@ -27,7 +27,7 @@ Add KotlinFFetch to your `build.gradle.kts` dependencies:
 
 ```kotlin
 dependencies {
-    implementation("com.terragon.kotlinffetch:kotlin-ffetch:1.0.0")
+    implementation("live.aem.koffetch:kotlin-ffetch:1.0.0")
 }
 ```
 
@@ -36,7 +36,7 @@ dependencies {
 ### Fetch Entries from an Index
 
 ```kotlin
-import com.terragon.kotlinffetch.*
+import live.aem.koffetch.*
 import kotlinx.coroutines.flow.collect
 
 val entries = ffetch("https://example.com/query-index.json")
@@ -227,7 +227,7 @@ The `query-index.json` files used in the examples above are typically generated 
 
 ## Example
 
-See `src/main/kotlin/com/terragon/kotlinffetch/examples/Examples.kt` in the repository for more detailed usage examples.
+See `src/main/kotlin/live/aem/koffetch/examples/Examples.kt` in the repository for more detailed usage examples.
 
 ## License
 
