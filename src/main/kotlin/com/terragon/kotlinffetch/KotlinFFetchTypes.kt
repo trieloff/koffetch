@@ -130,7 +130,7 @@ class DefaultFFetchHTMLParser : FFetchHTMLParser {
 }
 
 /// Configuration context for FFetch operations
-data class FFetchContext(
+class FFetchContext(
     /// Size of chunks to fetch during pagination
     var chunkSize: Int = 255,
     
@@ -159,7 +159,68 @@ data class FFetchContext(
     /// By default, only the hostname of the initial request is allowed
     /// Use "*" to allow all hostnames
     var allowedHosts: MutableSet<String> = mutableSetOf()
-)
+) {
+    /// Copy method to ensure mutable collections are deep copied
+    fun copy(
+        chunkSize: Int = this.chunkSize,
+        cacheReload: Boolean = this.cacheReload,
+        cacheConfig: FFetchCacheConfig = this.cacheConfig,
+        sheetName: String? = this.sheetName,
+        httpClient: FFetchHTTPClient = this.httpClient,
+        htmlParser: FFetchHTMLParser = this.htmlParser,
+        total: Int? = this.total,
+        maxConcurrency: Int = this.maxConcurrency,
+        allowedHosts: MutableSet<String> = this.allowedHosts.toMutableSet()
+    ): FFetchContext {
+        return FFetchContext(
+            chunkSize = chunkSize,
+            cacheReload = cacheReload,
+            cacheConfig = cacheConfig,
+            sheetName = sheetName,
+            httpClient = httpClient,
+            htmlParser = htmlParser,
+            total = total,
+            maxConcurrency = maxConcurrency,
+            allowedHosts = allowedHosts
+        )
+    }
+    
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        
+        other as FFetchContext
+        
+        if (chunkSize != other.chunkSize) return false
+        if (cacheReload != other.cacheReload) return false
+        if (cacheConfig != other.cacheConfig) return false
+        if (sheetName != other.sheetName) return false
+        if (httpClient != other.httpClient) return false
+        if (htmlParser != other.htmlParser) return false
+        if (total != other.total) return false
+        if (maxConcurrency != other.maxConcurrency) return false
+        if (allowedHosts != other.allowedHosts) return false
+        
+        return true
+    }
+    
+    override fun hashCode(): Int {
+        var result = chunkSize
+        result = 31 * result + cacheReload.hashCode()
+        result = 31 * result + cacheConfig.hashCode()
+        result = 31 * result + (sheetName?.hashCode() ?: 0)
+        result = 31 * result + httpClient.hashCode()
+        result = 31 * result + htmlParser.hashCode()
+        result = 31 * result + (total ?: 0)
+        result = 31 * result + maxConcurrency
+        result = 31 * result + allowedHosts.hashCode()
+        return result
+    }
+    
+    override fun toString(): String {
+        return "FFetchContext(chunkSize=$chunkSize, cacheReload=$cacheReload, cacheConfig=$cacheConfig, sheetName=$sheetName, httpClient=$httpClient, htmlParser=$htmlParser, total=$total, maxConcurrency=$maxConcurrency, allowedHosts=$allowedHosts)"
+    }
+}
 
 /// Transform function type for map operations
 typealias FFetchTransform<Input, Output> = suspend (Input) -> Output
