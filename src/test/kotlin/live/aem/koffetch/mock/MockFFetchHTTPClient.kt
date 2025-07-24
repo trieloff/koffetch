@@ -194,9 +194,10 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
         responses[url]?.let { return it }
 
         // Then try pattern matching
-        val patternMatch = responses.entries.find { (pattern, _) ->
-            url.contains(pattern) || url.matches(pattern.toRegex())
-        }
+        val patternMatch =
+            responses.entries.find { (pattern, _) ->
+                url.contains(pattern) || url.matches(pattern.toRegex())
+            }
 
         return patternMatch?.value ?: defaultResponse
     }

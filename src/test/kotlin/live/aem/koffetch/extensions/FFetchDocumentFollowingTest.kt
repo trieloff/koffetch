@@ -332,7 +332,8 @@ class FFetchDocumentFollowingTest {
                     append("<html><body>")
                     repeat(1000) { i ->
                         append(
-                            "<div>Large content section $i with lots of text content that makes this document very large.</div>",
+                            "<div>Large content section $i with lots of text content " +
+                                "that makes this document very large.</div>",
                         )
                     }
                     append("</body></html>")

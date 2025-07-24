@@ -18,6 +18,7 @@ import java.net.URL
 internal object FFetchRequestHandler {
     private const val HTTP_OK = 200
     private const val HTTP_NOT_FOUND = 404
+
     @OptIn(ExperimentalSerializationApi::class)
     private val json =
         Json {

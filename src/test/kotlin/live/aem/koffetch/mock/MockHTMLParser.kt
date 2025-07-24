@@ -34,7 +34,7 @@ class MockHTMLParser : FFetchHTMLParser {
     var errorAfterCalls: Int = -1 // Throw error after N successful calls (-1 = disabled)
 
     // Response customization
-    private var _customParseResult: Document? = null
+    private var customParseResult: Document? = null
 
     override fun parse(html: String): Document {
         parseCallCount++
@@ -52,7 +52,7 @@ class MockHTMLParser : FFetchHTMLParser {
         }
 
         // Return custom result if provided
-        _customParseResult?.let {
+        customParseResult?.let {
             lastParsedDocument = it
             return it
         }
@@ -80,7 +80,7 @@ class MockHTMLParser : FFetchHTMLParser {
         shouldThrowError = false
         errorMessage = "Mock HTML parsing error"
         errorAfterCalls = -1
-        _customParseResult = null
+        customParseResult = null
     }
 
     /**
@@ -106,7 +106,7 @@ class MockHTMLParser : FFetchHTMLParser {
      * Configure the parser to return a specific document for all parse calls
      */
     fun setCustomParseResult(document: Document) {
-        _customParseResult = document
+        customParseResult = document
     }
 
     /**
