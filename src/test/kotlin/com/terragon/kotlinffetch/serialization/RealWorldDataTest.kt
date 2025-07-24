@@ -418,7 +418,7 @@ class RealWorldDataTest {
         // Test special characters
         val specialCharsEntry = entries[0]
         assertTrue((specialCharsEntry["title"] as String).contains("\"quotes\""))
-        assertTrue((specialCharsEntry["content"] as String).contains("\\n"))
+        assertTrue((specialCharsEntry["content"] as String).contains("\n"))
         assertTrue((specialCharsEntry["url"] as String).contains("?param=value"))
 
         // Test empty/null fields
