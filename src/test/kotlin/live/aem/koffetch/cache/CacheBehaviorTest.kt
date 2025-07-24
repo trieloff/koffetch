@@ -8,11 +8,18 @@
 package live.aem.koffetch.cache
 
 import kotlinx.coroutines.test.runTest
-import live.aem.koffetch.*
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchCacheConfig
+import live.aem.koffetch.FFetchContext
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import live.aem.koffetch.mock.MockResponse
 import java.net.URL
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotSame
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class CacheBehaviorTest {
     private fun createMockClient(responses: Map<String, String> = mapOf()): MockFFetchHTTPClient {

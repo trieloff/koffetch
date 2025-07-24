@@ -12,7 +12,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.supervisorScope
-import live.aem.koffetch.*
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchEntry
 import java.net.URL
 
 // MARK: - Constants

@@ -8,7 +8,7 @@
 package live.aem.koffetch
 
 import kotlinx.coroutines.test.runTest
-import live.aem.koffetch.extensions.*
+import live.aem.koffetch.extensions.ffetch
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

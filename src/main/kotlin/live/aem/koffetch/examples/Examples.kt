@@ -9,8 +9,21 @@ package live.aem.koffetch.examples
 
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
-import live.aem.koffetch.*
-import live.aem.koffetch.extensions.*
+import live.aem.koffetch.FFetchCacheConfig
+import live.aem.koffetch.FFetchEntry
+import live.aem.koffetch.cache
+import live.aem.koffetch.chunks
+import live.aem.koffetch.extensions.all
+import live.aem.koffetch.extensions.allow
+import live.aem.koffetch.extensions.filter
+import live.aem.koffetch.extensions.first
+import live.aem.koffetch.extensions.follow
+import live.aem.koffetch.extensions.limit
+import live.aem.koffetch.extensions.map
+import live.aem.koffetch.ffetch
+import live.aem.koffetch.reloadCache
+import live.aem.koffetch.sheet
+import live.aem.koffetch.withCacheReload
 import org.jsoup.nodes.Document
 
 // / Basic usage examples

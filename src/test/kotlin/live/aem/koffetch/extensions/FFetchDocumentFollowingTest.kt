@@ -7,13 +7,21 @@
 
 package live.aem.koffetch.extensions
 
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.runTest
-import live.aem.koffetch.*
-import live.aem.koffetch.mock.*
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchContext
+import live.aem.koffetch.FFetchEntry
+import live.aem.koffetch.mock.MockFFetchHTTPClient
+import live.aem.koffetch.mock.MockHTMLParser
 import java.net.URL
-import kotlin.test.*
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class FFetchDocumentFollowingTest {
     private lateinit var mockHttpClient: MockFFetchHTTPClient

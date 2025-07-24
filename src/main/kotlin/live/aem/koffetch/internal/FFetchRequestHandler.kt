@@ -7,11 +7,13 @@
 
 package live.aem.koffetch.internal
 
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.statement.HttpResponse
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import live.aem.koffetch.*
+import live.aem.koffetch.FFetchContext
+import live.aem.koffetch.FFetchEntry
+import live.aem.koffetch.FFetchError
+import live.aem.koffetch.FFetchResponse
 import java.net.URL
 
 // / Internal class to handle HTTP requests and pagination

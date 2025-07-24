@@ -7,14 +7,25 @@
 
 package live.aem.koffetch.http
 
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.util.*
-import kotlinx.coroutines.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.Headers
+import io.ktor.http.HttpProtocolVersion
+import io.ktor.http.HttpStatusCode
+import io.ktor.util.InternalAPI
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
-import live.aem.koffetch.*
+import live.aem.koffetch.DefaultFFetchHTTPClient
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchCacheConfig
+import live.aem.koffetch.FFetchError
+import live.aem.koffetch.FFetchHTTPClient
 import kotlin.coroutines.CoroutineContext
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotSame
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class CustomClientTest {
     // Mock HTTP client for testing

@@ -7,11 +7,15 @@
 
 package live.aem.koffetch.mock
 
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.util.*
-import kotlinx.coroutines.*
-import live.aem.koffetch.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.Headers
+import io.ktor.http.HttpProtocolVersion
+import io.ktor.http.HttpStatusCode
+import io.ktor.util.InternalAPI
+import kotlinx.coroutines.Job
+import live.aem.koffetch.FFetchCacheConfig
+import live.aem.koffetch.FFetchError
+import live.aem.koffetch.FFetchHTTPClient
 import kotlin.collections.mutableMapOf
 import kotlin.collections.mutableSetOf
 import kotlin.coroutines.CoroutineContext
