@@ -73,10 +73,28 @@ package live.aem.koffetch
 // /     .maxConcurrency(10)
 // /     .withCacheReload(true)
 // / ```
+/**
+ * KotlinFFetch - A Kotlin port of the SwiftFFetch library for Adobe Experience Manager Edge Delivery Services.
+ *
+ * KotlinFFetch provides a fluent API for working with AEM indices, offering lazy pagination,
+ * filtering, transformation, and document following capabilities built on top of Kotlin's
+ * coroutines and Flow API.
+ *
+ * This object contains version and build information for the library.
+ */
 object KotlinFFetch {
-    // / Current version of KotlinFFetch
+    /**
+     * Current version of KotlinFFetch.
+     *
+     * This follows semantic versioning (MAJOR.MINOR.PATCH) format.
+     */
     const val VERSION = "1.0.0"
 
-    // / Build information
+    /**
+     * Build information string containing version and description.
+     *
+     * This provides a human-readable string describing the library version
+     * and its relationship to the original SwiftFFetch library.
+     */
     const val BUILD = "KotlinFFetch $VERSION - Kotlin port of SwiftFFetch for AEM Edge Delivery Services"
 }
