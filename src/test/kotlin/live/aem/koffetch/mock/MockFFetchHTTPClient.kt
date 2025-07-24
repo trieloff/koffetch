@@ -194,13 +194,11 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
         responses[url]?.let { return it }
 
         // Then try pattern matching
-        responses.entries.forEach { (pattern, response) ->
-            if (url.contains(pattern) || url.matches(pattern.toRegex())) {
-                return response
-            }
+        val patternMatch = responses.entries.find { (pattern, _) ->
+            url.contains(pattern) || url.matches(pattern.toRegex())
         }
 
-        return defaultResponse
+        return patternMatch?.value ?: defaultResponse
     }
 
     @OptIn(io.ktor.util.InternalAPI::class)

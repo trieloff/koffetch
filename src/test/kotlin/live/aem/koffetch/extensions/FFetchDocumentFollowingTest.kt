@@ -40,7 +40,8 @@ class FFetchDocumentFollowingTest {
                         mapOf(
                             "path" to "/content/article-2",
                             "title" to "Article 2",
-                            "documentUrl" to "docs/article2.html", // relative URL
+                            // relative URL
+                            "documentUrl" to "docs/article2.html",
                         ),
                         mapOf(
                             "path" to "/content/article-3",
@@ -573,7 +574,8 @@ class FFetchDocumentFollowingTest {
                     FFetchContext(
                         httpClient = mockHttpClient,
                         htmlParser = mockHtmlParser,
-                        maxConcurrency = 2, // Limit to 2 concurrent requests
+                        // Limit to 2 concurrent requests
+                        maxConcurrency = 2,
                     ),
                 )
 

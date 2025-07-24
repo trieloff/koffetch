@@ -229,7 +229,10 @@ class FFetchContext(
     }
 
     override fun toString(): String {
-        return "FFetchContext(chunkSize=$chunkSize, cacheReload=$cacheReload, cacheConfig=$cacheConfig, sheetName=$sheetName, httpClient=$httpClient, htmlParser=$htmlParser, total=$total, maxConcurrency=$maxConcurrency, allowedHosts=$allowedHosts)"
+        return "FFetchContext(chunkSize=$chunkSize, cacheReload=$cacheReload, " +
+            "cacheConfig=$cacheConfig, sheetName=$sheetName, httpClient=$httpClient, " +
+            "htmlParser=$htmlParser, total=$total, maxConcurrency=$maxConcurrency, " +
+            "allowedHosts=$allowedHosts)"
     }
 }
 
