@@ -7,8 +7,15 @@
 
 package live.aem.koffetch.cache
 
-import live.aem.koffetch.*
-import kotlin.test.*
+import live.aem.koffetch.FFetchCacheConfig
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNotSame
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class CachePolicyTest {
     @Test

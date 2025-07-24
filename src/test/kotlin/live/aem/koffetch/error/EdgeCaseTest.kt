@@ -16,7 +16,10 @@
 
 package live.aem.koffetch.error
 
-import live.aem.koffetch.*
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchCacheConfig
+import live.aem.koffetch.FFetchContext
+import live.aem.koffetch.FFetchError
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import kotlin.test.Test
 import kotlin.test.assertEquals

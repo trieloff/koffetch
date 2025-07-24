@@ -17,7 +17,17 @@
 package live.aem.koffetch.api
 
 import kotlinx.coroutines.runBlocking
-import live.aem.koffetch.*
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchCacheConfig
+import live.aem.koffetch.FFetchContext
+import live.aem.koffetch.FFetchEntry
+import live.aem.koffetch.FFetchError
+import live.aem.koffetch.FFetchHTMLParser
+import live.aem.koffetch.FFetchHTTPClient
+import live.aem.koffetch.FFetchPredicate
+import live.aem.koffetch.FFetchResponse
+import live.aem.koffetch.FFetchTransform
+import live.aem.koffetch.extensions.ffetch
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import live.aem.koffetch.mock.MockHTMLParser
 import org.junit.jupiter.api.Test

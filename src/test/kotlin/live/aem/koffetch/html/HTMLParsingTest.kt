@@ -8,9 +8,17 @@
 package live.aem.koffetch.html
 
 import kotlinx.coroutines.test.runTest
-import live.aem.koffetch.*
+import live.aem.koffetch.DefaultFFetchHTMLParser
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchHTMLParser
 import org.jsoup.nodes.Document
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNotSame
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class HTMLParsingTest {
     private val parser = DefaultFFetchHTMLParser()

@@ -9,11 +9,19 @@ package live.aem.koffetch.security
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.test.runTest
-import live.aem.koffetch.*
-import live.aem.koffetch.extensions.*
-import live.aem.koffetch.mock.*
+import live.aem.koffetch.FFetch
+import live.aem.koffetch.FFetchContext
+import live.aem.koffetch.FFetchEntry
+import live.aem.koffetch.extensions.asFlow
+import live.aem.koffetch.extensions.follow
+import live.aem.koffetch.mock.MockFFetchHTTPClient
 import java.net.URL
-import kotlin.test.*
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class HostnameSecurityTest {
     private lateinit var mockHttpClient: MockFFetchHTTPClient
