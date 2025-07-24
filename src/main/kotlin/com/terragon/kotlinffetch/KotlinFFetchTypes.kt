@@ -24,7 +24,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -52,10 +51,9 @@ data class FFetchResponse(
                 key to when (value) {
                     is JsonPrimitive -> {
                         if (value.isString) {
-                            // For string primitives, use contentOrNull to get the actual content
-                            // and remove surrounding quotes if they exist (handles literal quote characters in buildJsonObject)
-                            val content = value.contentOrNull ?: "null"
-                            content.removeSurrounding("\"")
+                            // For string primitives, use the content and remove surrounding quotes if they exist
+                            // This handles cases like "\"Quoted Title\"" where the content still has quotes
+                            value.content.removeSurrounding("\"")
                         } else {
                             // For non-string primitives, convert to string
                             value.toString()
