@@ -235,6 +235,51 @@ This project is licensed under the terms of the Apache License 2.0. See [LICENSE
 
 ## Development Setup
 
+### Prerequisites
+
+- **Java 21+**: Required for Kotlin compilation and Gradle execution
+- **Gradle**: Uses Gradle Wrapper (included) - no separate installation needed
+
+### Environment Setup
+
+For automated setup, run the Terragon setup script:
+
+```bash
+./terragon-setup.sh
+```
+
+This script will:
+- Install Java 21 if not available (on apt-based systems)
+- Make gradlew executable
+- Download dependencies and compile the project
+- Verify the build environment
+
+### Manual Setup
+
+If you prefer manual setup:
+
+1. **Install Java 21+** (if not already installed):
+   ```bash
+   # Ubuntu/Debian
+   sudo apt-get update && sudo apt-get install openjdk-21-jdk-headless
+   
+   # macOS (with Homebrew)
+   brew install openjdk@21
+   
+   # Windows (with Chocolatey)
+   choco install openjdk21
+   ```
+
+2. **Make Gradle wrapper executable**:
+   ```bash
+   chmod +x ./gradlew
+   ```
+
+3. **Verify setup**:
+   ```bash
+   ./gradlew --version
+   ```
+
 ### Quick Commands
 
 Use Gradle for common development tasks:
@@ -252,6 +297,8 @@ Use Gradle for common development tasks:
 # Publish to local repository
 ./gradlew publishToMavenLocal
 ```
+
+**Note**: The Gradle Wrapper (`./gradlew`) downloads and manages the correct Gradle version automatically. No separate Gradle installation is required.
 
 ## Migration from SwiftFFetch
 

@@ -2,15 +2,19 @@ coverage/
 node_modules/
 .vscode/
 
-# Kotlin/Gradle
+# Kotlin/Gradle build artifacts and cache
 build/
 .gradle/
 *.iml
 *.ipr
 *.iws
 out/
+
+# Gradle user-specific configuration files
 gradle.properties
 local.properties
+
+# Note: gradle/wrapper/ should be committed (contains gradle-wrapper.jar and gradle-wrapper.properties)
 
 # Environment files
 .env
