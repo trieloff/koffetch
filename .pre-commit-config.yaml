@@ -1,0 +1,62 @@
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.md$
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Kotlin formatting with KtLint
+  - repo: https://github.com/JLLeitschuh/ktlint-gradle
+    rev: v12.1.0
+    hooks:
+      - id: ktlint
+        name: ktlint
+        description: Check Kotlin code style
+        entry: ./gradlew ktlintCheck
+        language: system
+        files: \.kt$
+        pass_filenames: false
+
+  # Kotlin static analysis with Detekt
+  - repo: local
+    hooks:
+      - id: detekt
+        name: detekt
+        description: Static code analysis for Kotlin
+        entry: ./gradlew detekt
+        language: system
+        files: \.kt$
+        pass_filenames: false
+
+  # Security checks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: \.lock$|package-lock\.json$
+
+default_language_version:
+  python: python3
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

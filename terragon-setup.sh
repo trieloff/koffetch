@@ -61,6 +61,20 @@ fi
 mkdir -p build/reports
 mkdir -p build/test-results
 
+# Setup linting and code quality tools
+echo "🔍 Setting up code quality tools..."
+if ./gradlew ktlintCheck --quiet > /dev/null 2>&1; then
+    echo "✅ KtLint formatting rules installed"
+else
+    echo "⚠️  KtLint check failed - formatting rules may need adjustment"
+fi
+
+if ./gradlew detekt --quiet > /dev/null 2>&1; then
+    echo "✅ Detekt static analysis rules installed"
+else
+    echo "⚠️  Detekt analysis failed - static analysis rules may need adjustment"
+fi
+
 echo "🎉 Environment setup complete!"
 echo "Repository is ready for Terragon task execution."
 echo ""
@@ -68,5 +82,14 @@ echo "Available commands:"
 echo "  ./gradlew compileKotlin - Compile main Kotlin code"
 echo "  ./gradlew build         - Build project (may have test issues)"
 echo "  ./gradlew clean         - Clean build artifacts"
+echo "  ./gradlew lint          - Run all linting checks"
+echo "  ./gradlew lintFix       - Auto-fix formatting issues"
+echo "  ./gradlew ktlintCheck   - Check Kotlin formatting"
+echo "  ./gradlew ktlintFormat  - Format Kotlin code"
+echo "  ./gradlew detekt        - Run static analysis"
+echo ""
+echo "🔧 Development setup:"
+echo "  ./setup-pre-commit.sh   - Install pre-commit hooks (requires Python)"  
+echo "  ./install-git-hooks.sh  - Install Git hooks (no Python required)"
 echo ""
 echo "⚠️  Note: Some tests have compilation issues and may need fixing before running './gradlew test'"
