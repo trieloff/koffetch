@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import live.aem.koffetch.internal.FFetchRequestHandler
+import java.net.MalformedURLException
 import java.net.URL
 
 /**
@@ -39,7 +40,9 @@ class FFetch(
             // Validate the URL string before attempting to create URL object
             validateURLString(url)
             URL(url)
-        } catch (e: Exception) {
+        } catch (e: MalformedURLException) {
+            throw FFetchError.InvalidURL(url)
+        } catch (e: IllegalArgumentException) {
             throw FFetchError.InvalidURL(url)
         },
     )
@@ -51,13 +54,14 @@ class FFetch(
 
         // / Validates a URL string and throws FFetchError.InvalidURL if invalid
         private fun validateURLString(url: String) {
-            val invalidConditions = listOf(
-                url.isBlank(),
-                url.lowercase().startsWith("javascript:"),
-                url == "://missing-scheme" || url == "http://",
-                !url.contains("://") && !url.startsWith("/")
-            )
-            
+            val invalidConditions =
+                listOf(
+                    url.isBlank(),
+                    url.lowercase().startsWith("javascript:"),
+                    url == "://missing-scheme" || url == "http://",
+                    !url.contains("://") && !url.startsWith("/"),
+                )
+
             if (invalidConditions.any { it }) {
                 throw FFetchError.InvalidURL(url)
             }

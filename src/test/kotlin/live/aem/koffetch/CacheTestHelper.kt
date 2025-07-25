@@ -116,8 +116,9 @@ class CacheAwareTestHTTPClient(
     ): Pair<String, HttpResponse> {
         return when {
             cacheConfig.cacheOnly -> {
-                val cachedEntry = mockCache.get(url)
-                    ?: throw FFetchError.NetworkError(Exception("Cache-only mode: no cached response found"))
+                val cachedEntry =
+                    mockCache.get(url)
+                        ?: throw FFetchError.NetworkError(Exception("Cache-only mode: no cached response found"))
                 createResponse(cachedEntry.content, HttpStatusCode.OK)
             }
             cacheConfig.noCache -> fetchFromNetwork(url)
@@ -140,13 +141,16 @@ class CacheAwareTestHTTPClient(
         }
     }
 
-    private suspend fun fetchFromNetworkAndCache(url: String, cacheConfig: FFetchCacheConfig): Pair<String, HttpResponse> {
+    private suspend fun fetchFromNetworkAndCache(
+        url: String,
+        cacheConfig: FFetchCacheConfig,
+    ): Pair<String, HttpResponse> {
         val (content, response) = fetchFromNetwork(url)
-        
+
         if (!cacheConfig.noCache) {
             mockCache.put(url, content, cacheConfig.maxAge)
         }
-        
+
         return Pair(content, response)
     }
 
