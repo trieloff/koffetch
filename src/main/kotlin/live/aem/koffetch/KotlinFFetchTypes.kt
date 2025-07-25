@@ -363,48 +363,61 @@ data class FFetchSecurityConfig(
 class FFetchContextBuilder {
     /** Size of data chunks to process in batch operations. */
     var chunkSize: Int = DEFAULT_CHUNK_SIZE
+
     /** Maximum number of concurrent operations allowed. */
     var maxConcurrency: Int = DEFAULT_MAX_CONCURRENCY
+
     /** Whether to reload cache. */
     var cacheReload: Boolean = false
+
     /** Cache configuration for HTTP requests. */
     var cacheConfig: FFetchCacheConfig = FFetchCacheConfig.Default
+
     /** Optional name of the sheet to fetch data from. */
     var sheetName: String? = null
+
     /** Optional total number of entries expected in the response. */
     var total: Int? = null
+
     /** HTTP client implementation for making network requests. */
     var httpClient: FFetchHTTPClient = DefaultFFetchHTTPClient(HttpClient())
+
     /** HTML parser implementation for document processing. */
     var htmlParser: FFetchHTMLParser = DefaultFFetchHTMLParser()
+
     /** Set of hostnames that are allowed for HTTP requests. */
     var allowedHosts: MutableSet<String> = mutableSetOf()
 
     /** Builds the performance configuration from current settings. */
     fun buildPerformanceConfig() = FFetchPerformanceConfig(chunkSize, maxConcurrency)
+
     /** Builds the client configuration from current settings. */
     fun buildClientConfig() = FFetchClientConfig(httpClient, htmlParser)
+
     /** Builds the request configuration from current settings. */
     fun buildRequestConfig() = FFetchRequestConfig(sheetName, total)
+
     /** Builds the security configuration from current settings. */
     fun buildSecurityConfig() = FFetchSecurityConfig(allowedHosts)
 
     /** Builds the final FFetchContext with all configured settings. */
-    fun build() = FFetchContext(
-        chunkSize = chunkSize,
-        cacheReload = cacheReload,
-        cacheConfig = cacheConfig,
-        sheetName = sheetName,
-        httpClient = httpClient,
-        htmlParser = htmlParser,
-        total = total,
-        maxConcurrency = maxConcurrency,
-        allowedHosts = allowedHosts,
-    )
+    fun build() =
+        FFetchContext(
+            chunkSize = chunkSize,
+            cacheReload = cacheReload,
+            cacheConfig = cacheConfig,
+            sheetName = sheetName,
+            httpClient = httpClient,
+            htmlParser = htmlParser,
+            total = total,
+            maxConcurrency = maxConcurrency,
+            allowedHosts = allowedHosts,
+        )
 
     companion object {
         /** Default chunk size for batch operations. */
         const val DEFAULT_CHUNK_SIZE = 255
+
         /** Default maximum concurrency for operations. */
         const val DEFAULT_MAX_CONCURRENCY = 5
     }
@@ -432,6 +445,7 @@ class FFetchContext(
     var securityConfig: FFetchSecurityConfig = FFetchSecurityConfig(),
 ) {
     // Backward compatibility properties
+
     /**
      * Size of data chunks to process in batch operations.
      * This is a backward compatibility property that delegates to performanceConfig.
@@ -631,18 +645,17 @@ class FFetchContext(
             cacheConfig = cacheConfig,
             clientConfig = clientConfig,
             requestConfig = requestConfig,
-            securityConfig = this.securityConfig.copy(
-                allowedHosts = this.securityConfig.allowedHosts.toMutableSet(),
-            ),
+            securityConfig =
+                this.securityConfig.copy(
+                    allowedHosts = this.securityConfig.allowedHosts.toMutableSet(),
+                ),
         )
     }
 
     /**
      * Creates a copy with a modified security configuration.
      */
-    fun copyWithSecurity(
-        securityConfig: FFetchSecurityConfig,
-    ): FFetchContext {
+    fun copyWithSecurity(securityConfig: FFetchSecurityConfig): FFetchContext {
         return copy(
             allowedHosts = securityConfig.allowedHosts,
         )

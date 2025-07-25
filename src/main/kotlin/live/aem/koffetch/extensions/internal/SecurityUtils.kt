@@ -18,15 +18,18 @@ internal fun FFetch.isHostnameAllowed(url: URL): Boolean {
     val allowedHosts = context.allowedHosts
     val hostname = url.host
 
-    return allowedHosts.contains("*") || (hostname != null && run {
-        val port = url.port
-        val defaultPort = getDefaultPort(url.protocol)
-        if (port != -1 && port != defaultPort) {
-            allowedHosts.contains("$hostname:$port")
-        } else {
-            allowedHosts.contains(hostname)
-        }
-    })
+    return allowedHosts.contains("*") || (
+        hostname != null &&
+            run {
+                val port = url.port
+                val defaultPort = getDefaultPort(url.protocol)
+                if (port != -1 && port != defaultPort) {
+                    allowedHosts.contains("$hostname:$port")
+                } else {
+                    allowedHosts.contains(hostname)
+                }
+            }
+    )
 }
 
 // / Get default port for protocol

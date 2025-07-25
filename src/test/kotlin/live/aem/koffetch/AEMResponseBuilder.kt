@@ -45,7 +45,7 @@ class AEMResponseBuilder {
                             )}T${String.format("%02d", (i * 3) % 24)}:${String.format("%02d", (i * 7) % 60)}:00Z",
                             category = listOf("Product News", "Industry Analysis", "Company News", "Technical")[i % 4],
                             featured = i % 3 == 0,
-                        )
+                        ),
                     )
                 }
             }
@@ -74,7 +74,7 @@ class AEMResponseBuilder {
                             price = 99.99 + (i * 50.0),
                             inStock = i % 4 != 0,
                             rating = 3.0 + (i % 3) * 0.5,
-                        )
+                        ),
                     )
                 }
             }

@@ -13,8 +13,8 @@ import kotlinx.coroutines.test.runTest
 import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchContext
 import live.aem.koffetch.FFetchEntry
-import live.aem.koffetch.extensions.follow
 import live.aem.koffetch.extensions.allow
+import live.aem.koffetch.extensions.follow
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import java.net.URL
 import kotlin.test.BeforeTest

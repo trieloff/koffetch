@@ -1,6 +1,6 @@
 # KotlinFFetch
 
-[![9% Vibe_Coded](https://img.shields.io/badge/9%25-Vibe_Coded-ff69b4?style=for-the-badge&logo=claude&logoColor=white)](https://github.com/trieloff/vibe-coded-badge-action)
+[![48% Vibe_Coded](https://img.shields.io/badge/48%25-Vibe_Coded-ff69b4?style=for-the-badge&logo=claude&logoColor=white)](https://github.com/trieloff/vibe-coded-badge-action)
 
 [![codecov](https://img.shields.io/codecov/c/github/trieloff/koffetch?token=SROMISB0K5&style=for-the-badge&logo=codecov&logoColor=white)](https://codecov.io/gh/trieloff/koffetch)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/trieloff/koffetch/test.yaml?style=for-the-badge&logo=github)](https://github.com/trieloff/koffetch/actions)

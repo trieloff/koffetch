@@ -16,8 +16,6 @@ import live.aem.koffetch.FFetchContext
 import live.aem.koffetch.FFetchEntry
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import live.aem.koffetch.mock.MockHTMLParser
-import live.aem.koffetch.extensions.follow
-import live.aem.koffetch.extensions.allow
 import java.net.URL
 import kotlin.test.BeforeTest
 import kotlin.test.Test
