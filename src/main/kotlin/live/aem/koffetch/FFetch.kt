@@ -7,7 +7,6 @@
 
 package live.aem.koffetch
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import live.aem.koffetch.internal.FFetchRequestHandler

@@ -11,9 +11,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
 import live.aem.koffetch.FFetchEntry
 import live.aem.koffetch.TestDataGenerator
-import live.aem.koffetch.extensions.all
-import live.aem.koffetch.extensions.first
-import live.aem.koffetch.extensions.count
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

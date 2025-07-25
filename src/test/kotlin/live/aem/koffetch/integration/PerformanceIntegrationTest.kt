@@ -14,13 +14,13 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchError
+import live.aem.koffetch.chunks
 import live.aem.koffetch.extensions.all
 import live.aem.koffetch.extensions.count
 import live.aem.koffetch.extensions.map
+import live.aem.koffetch.maxConcurrency
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import live.aem.koffetch.withHTTPClient
-import live.aem.koffetch.chunks
-import live.aem.koffetch.maxConcurrency
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
