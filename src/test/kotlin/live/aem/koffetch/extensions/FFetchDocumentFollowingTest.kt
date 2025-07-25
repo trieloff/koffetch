@@ -1011,12 +1011,14 @@ class FFetchDocumentFollowingTest {
                             mapOf(
                                 "path" to "/content/whitespace",
                                 "title" to "Whitespace URL",
-                                "documentUrl" to "  \t\n  ", // Only whitespace
+                                // Only whitespace
+                                "documentUrl" to "  \t\n  ",
                             ),
                             mapOf(
                                 "path" to "/content/empty-string",
                                 "title" to "Empty URL",
-                                "documentUrl" to "", // Empty string
+                                // Empty string
+                                "documentUrl" to "",
                             ),
                             mapOf(
                                 "path" to "/content/spaces-in-url",
@@ -1026,17 +1028,20 @@ class FFetchDocumentFollowingTest {
                             mapOf(
                                 "path" to "/content/malformed-protocol",
                                 "title" to "Malformed Protocol",
-                                "documentUrl" to "htp://example.com/doc.html", // Missing 't' in http
+                                // Missing 't' in http
+                                "documentUrl" to "htp://example.com/doc.html",
                             ),
                             mapOf(
                                 "path" to "/content/missing-hostname",
                                 "title" to "Missing Hostname",
-                                "documentUrl" to "https:///doc.html", // Missing hostname
+                                // Missing hostname
+                                "documentUrl" to "https:///doc.html",
                             ),
                             mapOf(
                                 "path" to "/content/path-only",
                                 "title" to "Path Only",
-                                "documentUrl" to "/absolute/path/to/doc.html", // Absolute path - should work
+                                // Absolute path - should work
+                                "documentUrl" to "/absolute/path/to/doc.html",
                             ),
                         ),
                 )
@@ -1200,7 +1205,8 @@ class FFetchDocumentFollowingTest {
                             mapOf(
                                 "path" to "/content/null-host",
                                 "title" to "Null Host",
-                                "documentUrl" to "file:///local/path/doc.html", // File URL with null host
+                                // File URL with null host
+                                "documentUrl" to "file:///local/path/doc.html",
                             ),
                         ),
                 )
