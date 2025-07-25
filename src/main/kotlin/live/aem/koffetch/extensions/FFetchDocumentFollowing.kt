@@ -86,22 +86,18 @@ private suspend fun FFetch.followDocument(
     newFieldName: String,
 ): FFetchEntry {
     val urlString = entry[fieldName] as? String
-    if (urlString == null) {
-        return createErrorEntry(
+        ?: return createErrorEntry(
             entry = entry,
             newFieldName = newFieldName,
             error = "Missing or invalid URL string in field '$fieldName'",
         )
-    }
 
     val resolvedURL = resolveDocumentURL(urlString)
-    if (resolvedURL == null) {
-        return createErrorEntry(
+        ?: return createErrorEntry(
             entry = entry,
             newFieldName = newFieldName,
             error = "Could not resolve URL from field '$fieldName': $urlString",
         )
-    }
 
     return if (!isHostnameAllowed(resolvedURL)) {
         createSecurityErrorEntry(
