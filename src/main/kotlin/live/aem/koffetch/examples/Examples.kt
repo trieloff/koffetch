@@ -27,16 +27,14 @@ import live.aem.koffetch.ffetch
 import org.jsoup.nodes.Document
 
 /**
- * Examples demonstrating various KotlinFFetch usage patterns.
+ * Basic examples demonstrating core KotlinFFetch usage patterns.
  *
- * This object contains comprehensive examples showing how to use KotlinFFetch
- * for common AEM Edge Delivery Services operations including pagination,
- * filtering, transformation, document following, caching, and security.
+ * This object contains the most commonly used examples for basic operations
+ * like streaming, filtering, and pagination.
  */
 object Examples {
     private const val EXAMPLE_CHUNK_SIZE = 100
     private const val EXAMPLE_LIMIT = 5
-    private const val EXAMPLE_CACHE_MAX_AGE = 3600
 
     /**
      * Example: Stream all entries from an AEM query index.
@@ -103,7 +101,15 @@ object Examples {
                     println(entry)
                 }
         }
+}
 
+/**
+ * Advanced examples demonstrating document following and sheet operations.
+ *
+ * This object contains examples for more complex operations including
+ * multi-sheet indices and document following with security constraints.
+ */
+object AdvancedExamples {
     /**
      * Example: Access a specific sheet from a multi-sheet index.
      *
@@ -142,7 +148,15 @@ object Examples {
                 }
             }
         }
+}
 
+/**
+ * Security examples demonstrating hostname allowlist configuration.
+ *
+ * This object contains examples for configuring security settings
+ * when following documents across different hostnames.
+ */
+object SecurityExamples {
     /**
      * Example: Allow additional hostnames for document following.
      *
@@ -170,6 +184,16 @@ object Examples {
                 .follow("path", "document")
                 .all()
         }
+}
+
+/**
+ * Caching examples demonstrating various cache configuration strategies.
+ *
+ * This object contains examples for different caching approaches including
+ * standard configurations, custom settings, and backward compatibility.
+ */
+object CacheExamples {
+    private const val EXAMPLE_CACHE_MAX_AGE = 3600
 
     /**
      * Example: Configure caching behavior.
