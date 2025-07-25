@@ -40,10 +40,11 @@ class FFetch(
             // Validate the URL string before attempting to create URL object
             validateURLString(url)
             URL(url)
-        } catch (e: MalformedURLException) {
-            throw FFetchError.InvalidURL(url)
-        } catch (e: IllegalArgumentException) {
-            throw FFetchError.InvalidURL(url)
+        } catch (e: Exception) {
+            when (e) {
+                is MalformedURLException, is IllegalArgumentException -> throw FFetchError.InvalidURL(url)
+                else -> throw e
+            }
         },
     )
 
