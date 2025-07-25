@@ -114,44 +114,39 @@ class CacheAwareTestHTTPClient(
         url: String,
         cacheConfig: FFetchCacheConfig,
     ): Pair<String, HttpResponse> {
-        // Handle cache-only mode
-        if (cacheConfig.cacheOnly) {
-            val cachedEntry = mockCache.get(url)
-            if (cachedEntry != null) {
-                return createResponse(cachedEntry.content, HttpStatusCode.OK)
-            } else {
-                throw FFetchError.NetworkError(Exception("Cache-only mode: no cached response found"))
+        return when {
+            cacheConfig.cacheOnly -> {
+                val cachedEntry = mockCache.get(url)
+                    ?: throw FFetchError.NetworkError(Exception("Cache-only mode: no cached response found"))
+                createResponse(cachedEntry.content, HttpStatusCode.OK)
+            }
+            cacheConfig.noCache -> fetchFromNetwork(url)
+            cacheConfig.cacheElseLoad -> {
+                val cachedEntry = mockCache.get(url)
+                if (cachedEntry != null) {
+                    createResponse(cachedEntry.content, HttpStatusCode.OK)
+                } else {
+                    fetchFromNetworkAndCache(url, cacheConfig)
+                }
+            }
+            else -> {
+                val cachedEntry = mockCache.get(url)
+                if (cachedEntry != null && !shouldIgnoreCache(cacheConfig)) {
+                    createResponse(cachedEntry.content, HttpStatusCode.OK)
+                } else {
+                    fetchFromNetworkAndCache(url, cacheConfig)
+                }
             }
         }
+    }
 
-        // Handle no-cache mode
-        if (cacheConfig.noCache) {
-            return fetchFromNetwork(url)
-        }
-
-        // Handle cache-else-load mode
-        if (cacheConfig.cacheElseLoad) {
-            val cachedEntry = mockCache.get(url)
-            if (cachedEntry != null) {
-                return createResponse(cachedEntry.content, HttpStatusCode.OK)
-            }
-            // Fall through to network request
-        }
-
-        // Default behavior: check cache first, then network
-        val cachedEntry = mockCache.get(url)
-        if (cachedEntry != null && !shouldIgnoreCache(cacheConfig)) {
-            return createResponse(cachedEntry.content, HttpStatusCode.OK)
-        }
-
-        // Fetch from network and cache the result
+    private suspend fun fetchFromNetworkAndCache(url: String, cacheConfig: FFetchCacheConfig): Pair<String, HttpResponse> {
         val (content, response) = fetchFromNetwork(url)
-
-        // Cache the response unless no-cache is specified
+        
         if (!cacheConfig.noCache) {
             mockCache.put(url, content, cacheConfig.maxAge)
         }
-
+        
         return Pair(content, response)
     }
 

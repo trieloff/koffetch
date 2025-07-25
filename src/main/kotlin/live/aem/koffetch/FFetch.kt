@@ -51,23 +51,14 @@ class FFetch(
 
         // / Validates a URL string and throws FFetchError.InvalidURL if invalid
         private fun validateURLString(url: String) {
-            // Check for empty or blank URLs
-            if (url.isBlank()) {
-                throw FFetchError.InvalidURL(url)
-            }
-
-            // Check for javascript: URLs which should be rejected for security
-            if (url.lowercase().startsWith("javascript:")) {
-                throw FFetchError.InvalidURL(url)
-            }
-
-            // Check for URLs that are clearly malformed
-            if (url == "://missing-scheme" || url == "http://") {
-                throw FFetchError.InvalidURL(url)
-            }
-
-            // Check for generic "not-a-url" strings that don't contain proper scheme
-            if (!url.contains("://") && !url.startsWith("/")) {
+            val invalidConditions = listOf(
+                url.isBlank(),
+                url.lowercase().startsWith("javascript:"),
+                url == "://missing-scheme" || url == "http://",
+                !url.contains("://") && !url.startsWith("/")
+            )
+            
+            if (invalidConditions.any { it }) {
                 throw FFetchError.InvalidURL(url)
             }
         }

@@ -278,60 +278,108 @@ class DefaultFFetchHTMLParser : FFetchHTMLParser {
 }
 
 /**
+ * Performance and concurrency configuration for FFetch operations.
+ */
+data class FFetchPerformanceConfig(
+    val chunkSize: Int = 255,
+    val maxConcurrency: Int = 5,
+)
+
+/**
+ * Client configuration for HTTP and HTML processing.
+ */
+data class FFetchClientConfig(
+    val httpClient: FFetchHTTPClient = DefaultFFetchHTTPClient(HttpClient()),
+    val htmlParser: FFetchHTMLParser = DefaultFFetchHTMLParser(),
+)
+
+/**
+ * Request-specific configuration parameters.
+ */
+data class FFetchRequestConfig(
+    val sheetName: String? = null,
+    val total: Int? = null,
+)
+
+/**
+ * Security configuration for hostname restrictions.
+ */
+data class FFetchSecurityConfig(
+    val allowedHosts: MutableSet<String> = mutableSetOf(),
+)
+
+/**
  * Configuration context for FFetch operations.
  *
  * This class holds all the configuration parameters and state needed for FFetch
- * operations, including pagination settings, caching configuration, HTTP client
- * customization, and security settings for document following.
+ * operations, now organized into logical parameter groups to reduce complexity.
  *
- * @param chunkSize Size of chunks to fetch during pagination (default: 255)
+ * @param performanceConfig Performance and concurrency settings
  * @param cacheReload Whether to reload cache (deprecated - use cacheConfig instead)
  * @param cacheConfig Cache configuration for HTTP requests
- * @param sheetName Name of the sheet to query (for multi-sheet responses)
- * @param httpClient HTTP client for making requests
- * @param htmlParser HTML parser for parsing documents
- * @param total Total number of entries (set after first request)
- * @param maxConcurrency Maximum number of concurrent operations
- * @param allowedHosts Set of allowed hostnames for document following (security feature)
+ * @param clientConfig Client configuration for HTTP and HTML processing
+ * @param requestConfig Request-specific configuration parameters
+ * @param securityConfig Security configuration for hostname restrictions
  */
 class FFetchContext(
-    // / Size of chunks to fetch during pagination
-    var chunkSize: Int = 255,
-    // / Whether to reload cache (deprecated - use cacheConfig instead)
+    var performanceConfig: FFetchPerformanceConfig = FFetchPerformanceConfig(),
     var cacheReload: Boolean = false,
-    // / Cache configuration for HTTP requests
     var cacheConfig: FFetchCacheConfig = FFetchCacheConfig.Default,
-    // / Name of the sheet to query (for multi-sheet responses)
-    var sheetName: String? = null,
-    // / HTTP client for making requests
-    var httpClient: FFetchHTTPClient = DefaultFFetchHTTPClient(HttpClient()),
-    // / HTML parser for parsing documents
-    var htmlParser: FFetchHTMLParser = DefaultFFetchHTMLParser(),
-    // / Total number of entries (set after first request)
-    var total: Int? = null,
-    // / Maximum number of concurrent operations
-    var maxConcurrency: Int = 5,
-    // / Set of allowed hostnames for document following (security feature)
-    // / By default, only the hostname of the initial request is allowed
-    // / Use "*" to allow all hostnames
-    var allowedHosts: MutableSet<String> = mutableSetOf(),
+    var clientConfig: FFetchClientConfig = FFetchClientConfig(),
+    var requestConfig: FFetchRequestConfig = FFetchRequestConfig(),
+    var securityConfig: FFetchSecurityConfig = FFetchSecurityConfig(),
 ) {
+    // Backward compatibility properties
+    var chunkSize: Int
+        get() = performanceConfig.chunkSize
+        set(value) { performanceConfig = performanceConfig.copy(chunkSize = value) }
+
+    var maxConcurrency: Int
+        get() = performanceConfig.maxConcurrency
+        set(value) { performanceConfig = performanceConfig.copy(maxConcurrency = value) }
+
+    var httpClient: FFetchHTTPClient
+        get() = clientConfig.httpClient
+        set(value) { clientConfig = clientConfig.copy(httpClient = value) }
+
+    var htmlParser: FFetchHTMLParser
+        get() = clientConfig.htmlParser
+        set(value) { clientConfig = clientConfig.copy(htmlParser = value) }
+
+    var sheetName: String?
+        get() = requestConfig.sheetName
+        set(value) { requestConfig = requestConfig.copy(sheetName = value) }
+
+    var total: Int?
+        get() = requestConfig.total
+        set(value) { requestConfig = requestConfig.copy(total = value) }
+
+    var allowedHosts: MutableSet<String>
+        get() = securityConfig.allowedHosts
+        set(value) { securityConfig = securityConfig.copy(allowedHosts = value) }
+
+    // Constructor overload for backward compatibility
+    constructor(
+        chunkSize: Int = 255,
+        cacheReload: Boolean = false,
+        cacheConfig: FFetchCacheConfig = FFetchCacheConfig.Default,
+        sheetName: String? = null,
+        httpClient: FFetchHTTPClient = DefaultFFetchHTTPClient(HttpClient()),
+        htmlParser: FFetchHTMLParser = DefaultFFetchHTMLParser(),
+        total: Int? = null,
+        maxConcurrency: Int = 5,
+        allowedHosts: MutableSet<String> = mutableSetOf(),
+    ) : this(
+        performanceConfig = FFetchPerformanceConfig(chunkSize, maxConcurrency),
+        cacheReload = cacheReload,
+        cacheConfig = cacheConfig,
+        clientConfig = FFetchClientConfig(httpClient, htmlParser),
+        requestConfig = FFetchRequestConfig(sheetName, total),
+        securityConfig = FFetchSecurityConfig(allowedHosts),
+    )
     /**
      * Creates a copy of this FFetchContext with optionally modified parameters.
-     *
-     * This method ensures that mutable collections like allowedHosts are properly
-     * deep copied to prevent unintended sharing between instances.
-     *
-     * @param chunkSize Size of chunks to fetch during pagination
-     * @param cacheReload Whether to reload cache (deprecated)
-     * @param cacheConfig Cache configuration for HTTP requests
-     * @param sheetName Name of the sheet to query
-     * @param httpClient HTTP client for making requests
-     * @param htmlParser HTML parser for parsing documents
-     * @param total Total number of entries
-     * @param maxConcurrency Maximum number of concurrent operations
-     * @param allowedHosts Set of allowed hostnames for document following
-     * @return A new FFetchContext instance with the specified parameters
+     * Maintains backward compatibility with the original parameter list.
      */
     fun copy(
         chunkSize: Int = this.chunkSize,
@@ -354,6 +402,27 @@ class FFetchContext(
             total = total,
             maxConcurrency = maxConcurrency,
             allowedHosts = allowedHosts,
+        )
+    }
+
+    /**
+     * Creates a copy with parameter object-based configuration (preferred method).
+     */
+    fun copy(
+        performanceConfig: FFetchPerformanceConfig = this.performanceConfig,
+        cacheReload: Boolean = this.cacheReload,
+        cacheConfig: FFetchCacheConfig = this.cacheConfig,
+        clientConfig: FFetchClientConfig = this.clientConfig,
+        requestConfig: FFetchRequestConfig = this.requestConfig,
+        securityConfig: FFetchSecurityConfig = this.securityConfig.copy(allowedHosts = this.securityConfig.allowedHosts.toMutableSet()),
+    ): FFetchContext {
+        return FFetchContext(
+            performanceConfig = performanceConfig,
+            cacheReload = cacheReload,
+            cacheConfig = cacheConfig,
+            clientConfig = clientConfig,
+            requestConfig = requestConfig,
+            securityConfig = securityConfig,
         )
     }
 
