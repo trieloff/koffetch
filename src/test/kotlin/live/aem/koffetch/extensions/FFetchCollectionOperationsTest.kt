@@ -12,10 +12,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchEntry
 import live.aem.koffetch.TestDataGenerator
-import live.aem.koffetch.mock.MockFFetchHTTPClient
-import live.aem.koffetch.mock.MockResponse
-import live.aem.koffetch.withHTTPClient
 import live.aem.koffetch.chunks
+import live.aem.koffetch.mock.MockFFetchHTTPClient
+import live.aem.koffetch.withHTTPClient
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -362,7 +361,8 @@ class FFetchCollectionOperationsTest {
     fun testFFetchAllWithSingleEntry() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 1,
                     "offset": 0,
@@ -375,13 +375,13 @@ class FFetchCollectionOperationsTest {
                         }
                     ]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.all()
-            
+
             assertEquals(1, result.size)
             assertEquals("ffetch_all_1", result[0]["id"])
             assertEquals("FFetch All Test 1", result[0]["title"])
@@ -391,7 +391,8 @@ class FFetchCollectionOperationsTest {
     fun testFFetchAllWithMultipleEntries() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 3,
                     "offset": 0,
@@ -414,13 +415,13 @@ class FFetchCollectionOperationsTest {
                         }
                     ]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.all()
-            
+
             assertEquals(3, result.size)
             assertEquals("ffetch_all_1", result[0]["id"])
             assertEquals("ffetch_all_3", result[2]["id"])
@@ -430,20 +431,21 @@ class FFetchCollectionOperationsTest {
     fun testFFetchAllWithEmptyResult() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 0,
                     "offset": 0,
                     "limit": 255,
                     "data": []
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.all()
-            
+
             assertTrue(result.isEmpty())
         }
 
@@ -451,7 +453,8 @@ class FFetchCollectionOperationsTest {
     fun testFFetchFirstWithSingleEntry() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 1,
                     "offset": 0,
@@ -464,13 +467,13 @@ class FFetchCollectionOperationsTest {
                         }
                     ]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.first()
-            
+
             assertNotNull(result)
             assertEquals("ffetch_first_1", result["id"])
             assertEquals("FFetch First Test 1", result["title"])
@@ -480,7 +483,8 @@ class FFetchCollectionOperationsTest {
     fun testFFetchFirstWithMultipleEntries() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 3,
                     "offset": 0,
@@ -503,13 +507,13 @@ class FFetchCollectionOperationsTest {
                         }
                     ]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.first()
-            
+
             assertNotNull(result)
             assertEquals("ffetch_first_1", result["id"])
             assertEquals("FFetch First Test 1", result["title"])
@@ -519,20 +523,21 @@ class FFetchCollectionOperationsTest {
     fun testFFetchFirstWithEmptyResult() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 0,
                     "offset": 0,
                     "limit": 255,
                     "data": []
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.first()
-            
+
             assertNull(result)
         }
 
@@ -540,7 +545,8 @@ class FFetchCollectionOperationsTest {
     fun testFFetchCountWithSingleEntry() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 1,
                     "offset": 0,
@@ -553,13 +559,13 @@ class FFetchCollectionOperationsTest {
                         }
                     ]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.count()
-            
+
             assertEquals(1, result)
         }
 
@@ -567,7 +573,8 @@ class FFetchCollectionOperationsTest {
     fun testFFetchCountWithMultipleEntries() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 5,
                     "offset": 0,
@@ -580,13 +587,13 @@ class FFetchCollectionOperationsTest {
                         {"id": "ffetch_count_5", "title": "Title 5"}
                     ]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.count()
-            
+
             assertEquals(5, result)
         }
 
@@ -594,20 +601,21 @@ class FFetchCollectionOperationsTest {
     fun testFFetchCountWithEmptyResult() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 0,
                     "offset": 0,
                     "limit": 255,
                     "data": []
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
             val result = ffetch.count()
-            
+
             assertEquals(0, result)
         }
 
@@ -615,57 +623,69 @@ class FFetchCollectionOperationsTest {
     fun testFFetchCountWithLargeDataset() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            
+
             // Setup paginated responses
             val pageSize = 100
             val totalItems = 250
-            
+
             // First page
-            val firstPageData = (1..pageSize).map { 
-                """{"id": "large_$it", "title": "Title $it"}""" 
-            }.joinToString(",")
-            val firstPageResponse = """
+            val firstPageData =
+                (1..pageSize).map {
+                    """{"id": "large_$it", "title": "Title $it"}"""
+                }.joinToString(
+                    ",",
+                )
+            val firstPageResponse =
+                """
                 {
                     "total": $totalItems,
                     "offset": 0,
                     "limit": $pageSize,
                     "data": [$firstPageData]
                 }
-            """.trimIndent()
-            
-            // Second page  
-            val secondPageData = (101..200).map { 
-                """{"id": "large_$it", "title": "Title $it"}""" 
-            }.joinToString(",")
-            val secondPageResponse = """
+                """.trimIndent()
+
+            // Second page
+            val secondPageData =
+                (101..200).map {
+                    """{"id": "large_$it", "title": "Title $it"}"""
+                }.joinToString(
+                    ",",
+                )
+            val secondPageResponse =
+                """
                 {
                     "total": $totalItems,
                     "offset": 100,
                     "limit": $pageSize, 
                     "data": [$secondPageData]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             // Third page
-            val thirdPageData = (201..250).map { 
-                """{"id": "large_$it", "title": "Title $it"}""" 
-            }.joinToString(",")
-            val thirdPageResponse = """
+            val thirdPageData =
+                (201..250).map {
+                    """{"id": "large_$it", "title": "Title $it"}"""
+                }.joinToString(
+                    ",",
+                )
+            val thirdPageResponse =
+                """
                 {
                     "total": $totalItems,
                     "offset": 200,
                     "limit": $pageSize,
                     "data": [$thirdPageData]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", firstPageResponse)
             mockClient.setSuccessResponse("https://example.com/test.json?offset=100&limit=100", secondPageResponse)
             mockClient.setSuccessResponse("https://example.com/test.json?offset=200&limit=100", thirdPageResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient).chunks(pageSize)
             val result = ffetch.count()
-            
+
             assertEquals(totalItems, result)
         }
 
@@ -675,7 +695,8 @@ class FFetchCollectionOperationsTest {
     fun testFFetchExtensionsWithNullValues() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            val jsonResponse = """
+            val jsonResponse =
+                """
                 {
                     "total": 2,
                     "offset": 0,
@@ -695,22 +716,22 @@ class FFetchCollectionOperationsTest {
                         }
                     ]
                 }
-            """.trimIndent()
-            
+                """.trimIndent()
+
             mockClient.setSuccessResponse("https://example.com/test.json", jsonResponse)
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
-            
+
             val allResult = ffetch.all()
             assertEquals(2, allResult.size)
             // Note: JSON null gets parsed as string "null" in this test setup
             assertTrue(allResult[0]["optional_field"] == null || allResult[0]["optional_field"] == "null")
             assertTrue(allResult[1]["title"] == null || allResult[1]["title"] == "null")
-            
+
             val firstResult = ffetch.first()
             assertNotNull(firstResult)
             assertEquals("null_test_1", firstResult["id"])
-            
+
             val countResult = ffetch.count()
             assertEquals(2, countResult)
         }
@@ -721,18 +742,18 @@ class FFetchCollectionOperationsTest {
             val mockClient = MockFFetchHTTPClient()
             mockClient.shouldThrowNetworkError = true
             mockClient.networkErrorMessage = "Test network failure"
-            
+
             val ffetch = FFetch("https://example.com/test.json").withHTTPClient(mockClient)
-            
+
             // All operations should fail with network error
             assertFailsWith<Exception> {
                 ffetch.all()
             }
-            
+
             assertFailsWith<Exception> {
                 ffetch.first()
             }
-            
+
             assertFailsWith<Exception> {
                 ffetch.count()
             }

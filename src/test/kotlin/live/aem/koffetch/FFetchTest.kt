@@ -226,10 +226,11 @@ class FFetchTest {
         runTest {
             val mockClient = MockFFetchHTTPClient()
             mockClient.throwIOException = true
-            
-            val ffetch = FFetch("https://example.com/query-index.json")
-                .withHTTPClient(mockClient)
-            
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
             assertFailsWith<FFetchError.NetworkError> {
                 ffetch.asFlow().first()
             }
@@ -240,10 +241,11 @@ class FFetchTest {
         runTest {
             val mockClient = MockFFetchHTTPClient()
             mockClient.throwSerializationException = true
-            
-            val ffetch = FFetch("https://example.com/query-index.json")
-                .withHTTPClient(mockClient)
-            
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
             assertFailsWith<FFetchError.DecodingError> {
                 ffetch.asFlow().first()
             }
@@ -254,14 +256,18 @@ class FFetchTest {
     fun testAsFlowWithUpstream() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            mockClient.jsonResponse = """{"total": 1, "offset": 0, "limit": 255, "data": [{"path": "/test", "title": "Test"}]}"""
-            
-            val originalFFetch = FFetch("https://example.com/query-index.json")
-                .withHTTPClient(mockClient)
-            
+            mockClient.jsonResponse = """{
+                "total": 1, "offset": 0, "limit": 255, 
+                "data": [{"path": "/test", "title": "Test"}]
+            }"""
+
+            val originalFFetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
             val originalFlow = originalFFetch.asFlow()
             val ffetchWithUpstream = FFetch(originalFFetch.url, originalFFetch.context, originalFlow)
-            
+
             val results = ffetchWithUpstream.asFlow().toList()
             assertEquals(1, results.size)
             assertEquals("/test", results[0]["path"])
@@ -284,10 +290,10 @@ class FFetchTest {
             val context = FFetchContext(chunkSize = 100)
             val mockClient = MockFFetchHTTPClient()
             mockClient.jsonResponse = """{"total": 0, "offset": 0, "limit": 255, "data": []}"""
-            
+
             val originalFFetch = FFetch(url).withHTTPClient(mockClient)
             val upstream = originalFFetch.asFlow()
-            
+
             val ffetch = FFetch(url, context, upstream)
             assertNotNull(ffetch)
             assertEquals(url, ffetch.url)
@@ -300,15 +306,15 @@ class FFetchTest {
     fun testBackwardCompatibilityMethods() =
         runTest {
             val ffetch = FFetch("https://example.com/query-index.json")
-            
+
             val withCacheReloadTrue = ffetch.withCacheReload(true)
             assertNotNull(withCacheReloadTrue)
             assertEquals(true, withCacheReloadTrue.context.cacheReload)
-            
+
             val withCacheReloadFalse = ffetch.withCacheReload(false)
             assertNotNull(withCacheReloadFalse)
             assertEquals(false, withCacheReloadFalse.context.cacheReload)
-            
+
             val withMaxConcurrency = ffetch.withMaxConcurrency(10)
             assertNotNull(withMaxConcurrency)
             assertEquals(10, withMaxConcurrency.context.maxConcurrency)
@@ -379,16 +385,18 @@ class FFetchTest {
             val mockClient = MockFFetchHTTPClient()
             mockClient.jsonResponse = """{"total": 1000, "offset": 0, "limit": 255, "data": []}"""
             mockClient.simulateNetworkDelay = 100
-            
-            val ffetch = FFetch("https://example.com/query-index.json")
-                .withHTTPClient(mockClient)
-            
-            val job = launch {
-                ffetch.asFlow().collect { _ ->
-                    // This should be cancelled before collecting much
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
+            val job =
+                launch {
+                    ffetch.asFlow().collect { _ ->
+                        // This should be cancelled before collecting much
+                    }
                 }
-            }
-            
+
             delay(50)
             job.cancel()
             assertTrue(job.isCancelled)
@@ -399,15 +407,19 @@ class FFetchTest {
     fun testResourceCleanupAfterFlowCompletion() =
         runTest {
             val mockClient = MockFFetchHTTPClient()
-            mockClient.jsonResponse = """{"total": 1, "offset": 0, "limit": 255, "data": [{"path": "/test", "title": "Test"}]}"""
-            
-            val ffetch = FFetch("https://example.com/query-index.json")
-                .withHTTPClient(mockClient)
-            
+            mockClient.jsonResponse = """{
+                "total": 1, "offset": 0, "limit": 255, 
+                "data": [{"path": "/test", "title": "Test"}]
+            }"""
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
             // Collect the flow completely
             val results = ffetch.asFlow().toList()
             assertEquals(1, results.size)
-            
+
             // Verify the flow can be collected again (resources are properly managed)
             val secondResults = ffetch.asFlow().toList()
             assertEquals(1, secondResults.size)

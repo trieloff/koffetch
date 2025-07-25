@@ -10,22 +10,15 @@ package live.aem.koffetch.http
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import io.ktor.client.engine.mock.respondError
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.HttpRedirect
-import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.RedirectResponseException
-import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
@@ -34,11 +27,11 @@ import live.aem.koffetch.FFetchCacheConfig
 import live.aem.koffetch.FFetchError
 import java.io.IOException
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlin.test.assertContains
 
 class DefaultFFetchHTTPClientTest {
     @Test
@@ -445,7 +438,10 @@ class DefaultFFetchHTTPClientTest {
 
             assertNotNull(capturedHeaders)
             // Verify standard headers are present
-            assertTrue(capturedHeaders!!.contains(HttpHeaders.UserAgent) || capturedHeaders!!.contains(HttpHeaders.Accept))
+            assertTrue(
+                capturedHeaders!!.contains(HttpHeaders.UserAgent) ||
+                    capturedHeaders!!.contains(HttpHeaders.Accept),
+            )
         }
 
     @Test
@@ -571,7 +567,7 @@ class DefaultFFetchHTTPClientTest {
 
             // Test successful response with various status codes
             val successCodes = listOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.Accepted)
-            
+
             for (statusCode in successCodes) {
                 val successEngine =
                     MockEngine { request ->
@@ -671,7 +667,7 @@ class DefaultFFetchHTTPClientTest {
                 }
 
             val client = DefaultFFetchHTTPClient(HttpClient(genericErrorEngine))
-            
+
             // For non-IOException runtime exceptions, they should be thrown as-is
             assertFailsWith<RuntimeException> {
                 client.fetch("https://example.com/generic-error")

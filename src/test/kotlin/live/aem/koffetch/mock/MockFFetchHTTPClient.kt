@@ -34,7 +34,7 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
     var simulateNetworkDelay: Long = 0
     var shouldThrowNetworkError: Boolean = false
     var networkErrorMessage: String = "Mock network error"
-    
+
     // New properties for testing exception handling
     var throwIOException: Boolean = false
     var throwSerializationException: Boolean = false
@@ -56,12 +56,12 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
         if (shouldThrowNetworkError) {
             throw FFetchError.NetworkError(RuntimeException(networkErrorMessage))
         }
-        
+
         // Simulate IOException if configured
         if (throwIOException) {
             throw java.io.IOException("Mock IO Exception")
         }
-        
+
         // Simulate SerializationException if configured
         if (throwSerializationException) {
             throw kotlinx.serialization.SerializationException("Mock Serialization Exception")
@@ -78,7 +78,12 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
 
         // Return successful response
         val mockHttpResponse = createMockHttpResponse(HttpStatusCode.OK)
-        val responseBody = if (jsonResponse != "{\"total\":0,\"offset\":0,\"limit\":255,\"data\":[]}") jsonResponse else mockResponse.body
+        val responseBody =
+            if (jsonResponse != "{\"total\":0,\"offset\":0,\"limit\":255,\"data\":[]}") {
+                jsonResponse
+            } else {
+                mockResponse.body
+            }
         return Pair(responseBody, mockHttpResponse)
     }
 

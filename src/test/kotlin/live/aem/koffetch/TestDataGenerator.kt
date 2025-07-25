@@ -60,7 +60,7 @@ object TestDataGenerator {
             FFetchContext().apply {
                 allowedHosts.add("example.com")
             },
-            entriesFlow
+            entriesFlow,
         )
     }
 

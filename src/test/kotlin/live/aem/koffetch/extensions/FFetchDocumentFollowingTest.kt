@@ -907,13 +907,14 @@ class FFetchDocumentFollowingTest {
             oomHtmlParser.shouldThrowError = false
             oomHtmlParser.reset()
             oomHtmlParser.throwErrorOnNextParse("Simulated OOM during HTML parsing")
-            
+
             // Override the parse method to throw OutOfMemoryError instead of IllegalArgumentException
-            val customParser = object : live.aem.koffetch.FFetchHTMLParser {
-                override fun parse(html: String): org.jsoup.nodes.Document {
-                    throw OutOfMemoryError("Simulated OOM during HTML parsing")
+            val customParser =
+                object : live.aem.koffetch.FFetchHTMLParser {
+                    override fun parse(html: String): org.jsoup.nodes.Document {
+                        throw OutOfMemoryError("Simulated OOM during HTML parsing")
+                    }
                 }
-            }
 
             val ffetch =
                 FFetch(
@@ -942,18 +943,19 @@ class FFetchDocumentFollowingTest {
     fun testFFetchNetworkErrorHandling() =
         runTest {
             // Configure mock client to throw NetworkError
-            val networkErrorClient = object : live.aem.koffetch.FFetchHTTPClient {
-                override suspend fun fetch(
-                    url: String,
-                    cacheConfig: live.aem.koffetch.FFetchCacheConfig,
-                ): Pair<String, io.ktor.client.statement.HttpResponse> {
-                    if (url.contains("docs/article")) {
-                        throw FFetchError.NetworkError(RuntimeException("Simulated network failure for $url"))
+            val networkErrorClient =
+                object : live.aem.koffetch.FFetchHTTPClient {
+                    override suspend fun fetch(
+                        url: String,
+                        cacheConfig: live.aem.koffetch.FFetchCacheConfig,
+                    ): Pair<String, io.ktor.client.statement.HttpResponse> {
+                        if (url.contains("docs/article")) {
+                            throw FFetchError.NetworkError(RuntimeException("Simulated network failure for $url"))
+                        }
+                        // For other URLs, delegate to the mock client
+                        return mockHttpClient.fetch(url, cacheConfig)
                     }
-                    // For other URLs, delegate to the mock client
-                    return mockHttpClient.fetch(url, cacheConfig)
                 }
-            }
 
             // Set up the base response
             val initialResponse =

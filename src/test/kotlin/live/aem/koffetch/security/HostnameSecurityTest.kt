@@ -468,7 +468,6 @@ class HostnameSecurityTest {
             assertNull(entry["documentUrl_error"])
         }
 
-
     private suspend fun Flow<FFetchEntry>.toList(): List<FFetchEntry> {
         val list = mutableListOf<FFetchEntry>()
         collect { list.add(it) }
