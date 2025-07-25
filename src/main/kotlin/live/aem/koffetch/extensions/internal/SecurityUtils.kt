@@ -16,18 +16,17 @@ private const val HTTPS_DEFAULT_PORT = 443
 // / Check if hostname is allowed for document following
 internal fun FFetch.isHostnameAllowed(url: URL): Boolean {
     val allowedHosts = context.allowedHosts
+    val hostname = url.host
 
-    if (allowedHosts.contains("*")) return true
-    
-    val hostname = url.host ?: return false
-    val port = url.port
-    val defaultPort = getDefaultPort(url.protocol)
-
-    return if (port != -1 && port != defaultPort) {
-        allowedHosts.contains("$hostname:$port")
-    } else {
-        allowedHosts.contains(hostname)
-    }
+    return allowedHosts.contains("*") || (hostname != null && run {
+        val port = url.port
+        val defaultPort = getDefaultPort(url.protocol)
+        if (port != -1 && port != defaultPort) {
+            allowedHosts.contains("$hostname:$port")
+        } else {
+            allowedHosts.contains(hostname)
+        }
+    })
 }
 
 // / Get default port for protocol
