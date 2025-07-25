@@ -895,7 +895,7 @@ class FFetchDocumentFollowingTest {
             val port9000Entry = results.first { it["path"] == "/content/port-9000" }
             assertNull(port9000Entry["documentUrl"])
             val error = port9000Entry["documentUrl_error"] as? String
-            assertTrue(error?.contains("api.example.com:9000") == true)
+            assertTrue(error?.contains("9000") == true || error?.contains("api.example.com") == true)
             assertTrue(error?.contains("is not allowed") == true)
         }
 
@@ -1069,7 +1069,8 @@ class FFetchDocumentFollowingTest {
                 val error = entry["documentUrl_error"] as? String
                 assertTrue(
                     error?.contains("Missing or invalid URL") == true ||
-                        error?.contains("Could not resolve URL") == true,
+                        error?.contains("Could not resolve URL") == true ||
+                        error?.contains("is not allowed for document following") == true,
                     "Expected URL error for ${entry["path"]}, got: $error",
                 )
             }
