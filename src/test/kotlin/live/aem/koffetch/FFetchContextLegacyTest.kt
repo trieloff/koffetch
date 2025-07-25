@@ -293,7 +293,8 @@ class FFetchContextLegacyTest {
         val complexCacheConfig =
             FFetchCacheConfig(
                 noCache = true,
-                cacheOnly = true, // contradictory but allowed
+                // contradictory but allowed
+                cacheOnly = true,
                 cacheElseLoad = true,
                 maxAge = 0,
                 ignoreServerCacheControl = true,
