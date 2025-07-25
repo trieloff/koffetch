@@ -40,11 +40,10 @@ class FFetch(
             // Validate the URL string before attempting to create URL object
             validateURLString(url)
             URL(url)
-        } catch (e: Exception) {
-            when (e) {
-                is MalformedURLException, is IllegalArgumentException -> throw FFetchError.InvalidURL(url)
-                else -> throw e
-            }
+        } catch (e: MalformedURLException) {
+            throw FFetchError.InvalidURL(url)
+        } catch (e: IllegalArgumentException) {
+            throw FFetchError.InvalidURL(url)
         },
     )
 
@@ -114,12 +113,10 @@ class FFetch(
                 FFetchRequestHandler.performRequest(url, context) { entry ->
                     emit(entry)
                 }
-            } catch (e: Exception) {
-                throw when (e) {
-                    is CancellationException -> e // Let cancellation exceptions propagate
-                    is FFetchError -> e
-                    else -> FFetchError.OperationFailed(e.message ?: "Unknown error")
-                }
+            } catch (e: java.io.IOException) {
+                throw FFetchError.NetworkError(e)
+            } catch (e: kotlinx.serialization.SerializationException) {
+                throw FFetchError.DecodingError(e)
             }
         }
     }
