@@ -2,6 +2,7 @@ package live.aem.koffetch
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
 import java.net.URL
 
@@ -53,11 +54,13 @@ object TestDataGenerator {
      * Creates a mock FFetch instance that returns the provided entries
      */
     fun createMockFFetch(entries: List<FFetchEntry>): FFetch {
+        val entriesFlow = entries.asFlow()
         return FFetch(
             URL("https://example.com/test"),
             FFetchContext().apply {
                 allowedHosts.add("example.com")
             },
+            entriesFlow
         )
     }
 
