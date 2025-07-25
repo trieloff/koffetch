@@ -9,12 +9,15 @@ package live.aem.koffetch.extensions
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchContext
 import live.aem.koffetch.FFetchEntry
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import live.aem.koffetch.mock.MockHTMLParser
+import live.aem.koffetch.extensions.follow
+import live.aem.koffetch.extensions.allow
 import java.net.URL
 import kotlin.test.BeforeTest
 import kotlin.test.Test

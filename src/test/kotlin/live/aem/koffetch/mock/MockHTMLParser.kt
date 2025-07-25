@@ -43,12 +43,12 @@ class MockHTMLParser : FFetchHTMLParser {
 
         // Check if we should throw error after N calls
         if (errorAfterCalls >= 0 && parseCallCount > errorAfterCalls) {
-            throw RuntimeException(errorMessage)
+            throw IllegalArgumentException(errorMessage)
         }
 
         // Check if we should throw error immediately
         if (shouldThrowError) {
-            throw RuntimeException(errorMessage)
+            throw IllegalArgumentException(errorMessage)
         }
 
         // Return custom result if provided
@@ -62,8 +62,8 @@ class MockHTMLParser : FFetchHTMLParser {
             val document = Jsoup.parse(html)
             lastParsedDocument = document
             document
-        } catch (e: Exception) {
-            throw RuntimeException("HTML parsing failed: ${e.message}", e)
+        } catch (e: kotlin.Exception) {
+            throw IllegalArgumentException("HTML parsing failed: ${e.message}", e)
         }
     }
 

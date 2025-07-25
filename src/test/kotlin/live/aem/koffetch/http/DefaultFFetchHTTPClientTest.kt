@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import live.aem.koffetch.DefaultFFetchHTTPClient
 import live.aem.koffetch.FFetchCacheConfig
 import live.aem.koffetch.FFetchError
+import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -156,7 +157,7 @@ class DefaultFFetchHTTPClientTest {
         runTest {
             val mockEngine =
                 MockEngine { request ->
-                    throw Exception("Network connection failed")
+                    throw IOException("Network connection failed")
                 }
 
             val client = DefaultFFetchHTTPClient(HttpClient(mockEngine))

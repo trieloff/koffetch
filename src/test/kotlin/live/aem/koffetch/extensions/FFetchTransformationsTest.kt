@@ -5,6 +5,12 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import live.aem.koffetch.FFetchEntry
 import live.aem.koffetch.TestDataGenerator
+import live.aem.koffetch.extensions.map
+import live.aem.koffetch.extensions.filter
+import live.aem.koffetch.extensions.limit
+import live.aem.koffetch.extensions.skip
+import live.aem.koffetch.extensions.slice
+import live.aem.koffetch.extensions.all
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

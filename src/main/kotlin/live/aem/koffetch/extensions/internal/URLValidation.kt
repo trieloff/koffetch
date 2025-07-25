@@ -49,7 +49,10 @@ internal fun FFetch.resolveDocumentURL(urlString: String): URL? {
             urlString.startsWith("/") -> {
                 URL(url, urlString)
             }
-            else -> null
+            else -> {
+                // Handle relative URLs like "docs/article.html"
+                URL(url, urlString)
+            }
         }
     } catch (e: MalformedURLException) {
         null

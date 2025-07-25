@@ -13,6 +13,12 @@ import live.aem.koffetch.FFetchCacheConfig
 import live.aem.koffetch.FFetchContext
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import live.aem.koffetch.mock.MockResponse
+import live.aem.koffetch.cache
+import live.aem.koffetch.reloadCache
+import live.aem.koffetch.withCacheReload
+import live.aem.koffetch.chunks
+import live.aem.koffetch.maxConcurrency
+import live.aem.koffetch.withHTTPClient
 import java.net.URL
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -10,6 +10,7 @@ package live.aem.koffetch.internal
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
 import live.aem.koffetch.FFetchContext
+import live.aem.koffetch.FFetchCacheConfig
 import live.aem.koffetch.FFetchEntry
 import live.aem.koffetch.FFetchError
 import live.aem.koffetch.mock.MockFFetchHTTPClient
@@ -278,7 +279,7 @@ class FFetchRequestHandlerTest {
             mockHttpClient.setSuccessResponse("$baseUrl?offset=0&limit=10", "{ invalid json }")
 
             // Execute & Verify
-            assertFailsWith<FFetchError.NetworkError> {
+            assertFailsWith<FFetchError.DecodingError> {
                 FFetchRequestHandler.performRequest(url, context) { }
             }
         }
@@ -294,7 +295,7 @@ class FFetchRequestHandlerTest {
             mockHttpClient.setSuccessResponse("$baseUrl?offset=0&limit=10", "{\"total\":5,\"offset\":0,\"limit\":10}")
 
             // Execute & Verify
-            assertFailsWith<FFetchError.NetworkError> {
+            assertFailsWith<FFetchError.DecodingError> {
                 FFetchRequestHandler.performRequest(url, context) { }
             }
         }
