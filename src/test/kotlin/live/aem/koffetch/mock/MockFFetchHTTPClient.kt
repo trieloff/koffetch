@@ -34,6 +34,11 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
     var simulateNetworkDelay: Long = 0
     var shouldThrowNetworkError: Boolean = false
     var networkErrorMessage: String = "Mock network error"
+    
+    // New properties for testing exception handling
+    var throwIOException: Boolean = false
+    var throwSerializationException: Boolean = false
+    var jsonResponse: String = "{\"total\":0,\"offset\":0,\"limit\":255,\"data\":[]}"
 
     override suspend fun fetch(
         url: String,
@@ -51,6 +56,16 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
         if (shouldThrowNetworkError) {
             throw FFetchError.NetworkError(RuntimeException(networkErrorMessage))
         }
+        
+        // Simulate IOException if configured
+        if (throwIOException) {
+            throw java.io.IOException("Mock IO Exception")
+        }
+        
+        // Simulate SerializationException if configured
+        if (throwSerializationException) {
+            throw kotlinx.serialization.SerializationException("Mock Serialization Exception")
+        }
 
         // Find matching response
         val mockResponse = findResponseForURL(url)
@@ -63,7 +78,8 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
 
         // Return successful response
         val mockHttpResponse = createMockHttpResponse(HttpStatusCode.OK)
-        return Pair(mockResponse.body, mockHttpResponse)
+        val responseBody = if (jsonResponse != "{\"total\":0,\"offset\":0,\"limit\":255,\"data\":[]}") jsonResponse else mockResponse.body
+        return Pair(responseBody, mockHttpResponse)
     }
 
     // Configuration methods
@@ -125,6 +141,9 @@ class MockFFetchHTTPClient : FFetchHTTPClient {
         simulateNetworkDelay = 0
         shouldThrowNetworkError = false
         networkErrorMessage = "Mock network error"
+        throwIOException = false
+        throwSerializationException = false
+        jsonResponse = "{\"total\":0,\"offset\":0,\"limit\":255,\"data\":[]}"
     }
 
     // Helper methods for building common AEM responses
