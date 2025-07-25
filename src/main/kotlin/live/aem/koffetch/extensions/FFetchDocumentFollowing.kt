@@ -168,6 +168,20 @@ private fun FFetch.parseDocumentData(
             newFieldName = newFieldName,
             error = "HTML parsing error for $resolvedURL: ${e.message}",
         )
+    } catch (e: IllegalArgumentException) {
+        // Catch illegal argument exceptions (e.g., from Jsoup parsing or mock implementations)
+        createErrorEntry(
+            entry = entry,
+            newFieldName = newFieldName,
+            error = "HTML parsing error for $resolvedURL: ${e.message}",
+        )
+    } catch (e: OutOfMemoryError) {
+        // Catch out of memory errors during HTML parsing
+        createErrorEntry(
+            entry = entry,
+            newFieldName = newFieldName,
+            error = "HTML parsing error for $resolvedURL: ${e.message}",
+        )
     }
 }
 

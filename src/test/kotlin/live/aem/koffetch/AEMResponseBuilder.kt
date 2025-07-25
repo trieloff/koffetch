@@ -34,16 +34,18 @@ class AEMResponseBuilder {
                 val startId = offset + 1
                 repeat(minOf(pageSize, totalPosts - offset)) { i ->
                     addBlogPost(
-                        id = startId + i,
-                        path = "/blog/2024/01/${String.format("%02d", startId + i)}/post-${startId + i}",
-                        title = "Blog Post ${startId + i}",
-                        author = listOf("John Doe", "Jane Smith", "Michael Johnson", "Sarah Wilson")[i % 4],
-                        publishedDate = "2024-01-${String.format(
-                            "%02d",
-                            (startId + i) % 28 + 1,
-                        )}T${String.format("%02d", (i * 3) % 24)}:${String.format("%02d", (i * 7) % 60)}:00Z",
-                        category = listOf("Product News", "Industry Analysis", "Company News", "Technical")[i % 4],
-                        featured = i % 3 == 0,
+                        BlogPostData(
+                            id = startId + i,
+                            path = "/blog/2024/01/${String.format("%02d", startId + i)}/post-${startId + i}",
+                            title = "Blog Post ${startId + i}",
+                            author = listOf("John Doe", "Jane Smith", "Michael Johnson", "Sarah Wilson")[i % 4],
+                            publishedDate = "2024-01-${String.format(
+                                "%02d",
+                                (startId + i) % 28 + 1,
+                            )}T${String.format("%02d", (i * 3) % 24)}:${String.format("%02d", (i * 7) % 60)}:00Z",
+                            category = listOf("Product News", "Industry Analysis", "Company News", "Technical")[i % 4],
+                            featured = i % 3 == 0,
+                        )
                     )
                 }
             }
@@ -64,13 +66,15 @@ class AEMResponseBuilder {
 
                 repeat(minOf(pageSize, totalProducts)) { i ->
                     addProduct(
-                        id = i + 1,
-                        path = "/products/$category/product-${i + 1}",
-                        name = "Product ${i + 1}",
-                        category = category.replaceFirstChar { it.uppercase() },
-                        price = 99.99 + (i * 50.0),
-                        inStock = i % 4 != 0,
-                        rating = 3.0 + (i % 3) * 0.5,
+                        ProductData(
+                            id = i + 1,
+                            path = "/products/$category/product-${i + 1}",
+                            name = "Product ${i + 1}",
+                            category = category.replaceFirstChar { it.uppercase() },
+                            price = 99.99 + (i * 50.0),
+                            inStock = i % 4 != 0,
+                            rating = 3.0 + (i % 3) * 0.5,
+                        )
                     )
                 }
             }

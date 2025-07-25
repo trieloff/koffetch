@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import live.aem.koffetch.DefaultFFetchHTMLParser
 import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchHTMLParser
+import live.aem.koffetch.withHTMLParser
 import org.jsoup.nodes.Document
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -19,6 +19,10 @@ import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchCacheConfig
 import live.aem.koffetch.FFetchError
 import live.aem.koffetch.FFetchHTTPClient
+import live.aem.koffetch.withHTTPClient
+import live.aem.koffetch.cache
+import live.aem.koffetch.chunks
+import live.aem.koffetch.maxConcurrency
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
