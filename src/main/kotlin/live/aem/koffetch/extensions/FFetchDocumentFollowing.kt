@@ -16,6 +16,9 @@ import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchEntry
 import live.aem.koffetch.FFetchError
 import live.aem.koffetch.extensions.internal.createErrorEntry
+import live.aem.koffetch.extensions.internal.createSecurityErrorEntry
+import live.aem.koffetch.extensions.internal.isHostnameAllowed
+import live.aem.koffetch.extensions.internal.resolveDocumentURL
 import java.net.URL
 
 // MARK: - Constants
