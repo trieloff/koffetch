@@ -10,7 +10,6 @@ package live.aem.koffetch.html
 import kotlinx.coroutines.test.runTest
 import live.aem.koffetch.DefaultFFetchHTMLParser
 import live.aem.koffetch.FFetch
-import live.aem.koffetch.FFetchError
 import live.aem.koffetch.FFetchHTMLParser
 import live.aem.koffetch.withHTMLParser
 import org.jsoup.nodes.Document
@@ -21,8 +20,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
-import kotlin.test.assertFalse
-import kotlin.test.assertContains
 
 class HTMLParsingTest {
     private val parser = DefaultFFetchHTMLParser()
@@ -339,14 +336,15 @@ class HTMLParsingTest {
     @Test
     fun testDefaultFFetchHTMLParserErrorHandling() {
         val parser = DefaultFFetchHTMLParser()
-        
+
         // Test that IllegalArgumentException is wrapped in FFetchError.DecodingError
-        val maliciousParser = object : FFetchHTMLParser {
-            override fun parse(html: String): Document {
-                throw IllegalArgumentException("Invalid HTML input")
+        val maliciousParser =
+            object : FFetchHTMLParser {
+                override fun parse(html: String): Document {
+                    throw IllegalArgumentException("Invalid HTML input")
+                }
             }
-        }
-        
+
         assertFailsWith<IllegalArgumentException> {
             maliciousParser.parse("<html></html>")
         }
@@ -355,7 +353,7 @@ class HTMLParsingTest {
     @Test
     fun testNullHTMLInput() {
         val parser = DefaultFFetchHTMLParser()
-        
+
         // Jsoup handles null input gracefully by creating empty document
         val document = parser.parse("")
         assertNotNull(document)
@@ -366,7 +364,7 @@ class HTMLParsingTest {
     fun testWhitespaceOnlyHTML() {
         val parser = DefaultFFetchHTMLParser()
         val whitespaceHTML = "   \n\t  \r  "
-        
+
         val document = parser.parse(whitespaceHTML)
         assertNotNull(document)
         assertEquals("", document.title())
@@ -375,7 +373,8 @@ class HTMLParsingTest {
 
     @Test
     fun testComplexNestedStructures() {
-        val html = """
+        val html =
+            """
             <html>
             <body>
                 <div class="level1">
@@ -401,20 +400,20 @@ class HTMLParsingTest {
                 </div>
             </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         val document = parser.parse(html)
-        
+
         // Test deep nesting navigation
         val deepParagraph = document.select(".level5 p").first()
         assertNotNull(deepParagraph)
         assertEquals("Deep nested content", deepParagraph!!.text())
-        
+
         // Test complex selectors
         val checkedInput = document.select("input[type=checkbox][checked]").first()
         assertNotNull(checkedInput)
         assertTrue(checkedInput!!.hasAttr("checked"))
-        
+
         // Test hierarchical relationships
         val listItems = document.select(".list li")
         assertEquals(3, listItems.size)
@@ -424,15 +423,16 @@ class HTMLParsingTest {
 
     @Test
     fun testDocumentTypeDeclarations() {
-        val htmlWithDoctype = """
+        val htmlWithDoctype =
+            """
             <!DOCTYPE html>
             <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
             <html>
             <head><title>DOCTYPE Test</title></head>
             <body><p>Content with DOCTYPE</p></body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         val document = parser.parse(htmlWithDoctype)
         assertNotNull(document)
         assertEquals("DOCTYPE Test", document.title())
@@ -441,7 +441,8 @@ class HTMLParsingTest {
 
     @Test
     fun testHTMLCommentsAndCDATA() {
-        val htmlWithComments = """
+        val htmlWithComments =
+            """
             <html>
             <head>
                 <!-- This is a comment -->
@@ -459,13 +460,13 @@ class HTMLParsingTest {
                      comment -->
             </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         val document = parser.parse(htmlWithComments)
         assertNotNull(document)
         assertEquals("Comments Test", document.title())
         assertEquals("Content with comments", document.select("p").text())
-        
+
         // Verify script tag exists (content may be filtered by Jsoup for security)
         val scriptTag = document.select("script").first()
         assertNotNull(scriptTag)
@@ -473,7 +474,8 @@ class HTMLParsingTest {
 
     @Test
     fun testSelfClosingTags() {
-        val htmlWithSelfClosing = """
+        val htmlWithSelfClosing =
+            """
             <html>
             <head>
                 <meta charset="UTF-8"/>
@@ -488,20 +490,20 @@ class HTMLParsingTest {
                 <area shape="circle" coords="50,50,25" href="#"/>
             </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         val document = parser.parse(htmlWithSelfClosing)
-        
+
         // Test self-closing tags are properly parsed
         val metaTags = document.select("meta")
         assertEquals(2, metaTags.size)
         assertEquals("UTF-8", metaTags[0].attr("charset"))
-        
+
         val img = document.select("img").first()
         assertNotNull(img)
         assertEquals("image.jpg", img!!.attr("src"))
         assertEquals("100", img.attr("width"))
-        
+
         // Verify other self-closing elements
         assertNotNull(document.select("br").first())
         assertNotNull(document.select("hr").first())
@@ -511,7 +513,8 @@ class HTMLParsingTest {
 
     @Test
     fun testExtensiveUnicodeSupport() {
-        val unicodeHTML = """
+        val unicodeHTML =
+            """
             <html>
             <head><title>Unicode Test 测试 тест</title></head>
             <body>
@@ -527,15 +530,15 @@ class HTMLParsingTest {
                 <p>Currency: $ € £ ¥ ₹ ₽ ₿</p>
             </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         val document = parser.parse(unicodeHTML)
-        
+
         assertEquals("Unicode Test 测试 тест", document.title())
-        
+
         val paragraphs = document.select("p")
         assertEquals(10, paragraphs.size)
-        
+
         // Test various Unicode ranges
         assertTrue(paragraphs[1].text().contains("你好世界"))
         assertTrue(paragraphs[2].text().contains("こんにちは世界"))
@@ -550,7 +553,8 @@ class HTMLParsingTest {
 
     @Test
     fun testMalformedTagRecovery() {
-        val malformedHTML = """
+        val malformedHTML =
+            """
             <html>
             <head><title>Malformed Test</title>
             <body>
@@ -568,13 +572,13 @@ class HTMLParsingTest {
                         <li>Item 3</ul>
                 </div>
             </body>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         // Jsoup should recover gracefully from malformed HTML
         val document = parser.parse(malformedHTML)
         assertNotNull(document)
         assertEquals("Malformed Test", document.title())
-        
+
         // Verify that parser recovered basic structure
         assertTrue(document.select("div").size > 0)
         assertTrue(document.select("p").size > 0)
@@ -585,69 +589,70 @@ class HTMLParsingTest {
     @Test
     fun testLargeDocumentPerformance() {
         // Create a very large HTML document
-        val largeHTML = buildString {
-            append("<html><head><title>Performance Test</title></head><body>")
-            
-            // Create nested table structure
-            append("<table id='main-table'>")
-            repeat(100) { tableIndex ->
-                append("<tr class='row-$tableIndex'>")
-                repeat(50) { cellIndex ->
-                    append("<td id='cell-$tableIndex-$cellIndex' class='cell' data-value='$cellIndex'>")
-                    append("Content for cell $tableIndex-$cellIndex with some additional text ")
-                    append("to make the content more substantial and realistic. ")
-                    append("This cell contains index $cellIndex in row $tableIndex.")
-                    append("</td>")
+        val largeHTML =
+            buildString {
+                append("<html><head><title>Performance Test</title></head><body>")
+
+                // Create nested table structure
+                append("<table id='main-table'>")
+                repeat(100) { tableIndex ->
+                    append("<tr class='row-$tableIndex'>")
+                    repeat(50) { cellIndex ->
+                        append("<td id='cell-$tableIndex-$cellIndex' class='cell' data-value='$cellIndex'>")
+                        append("Content for cell $tableIndex-$cellIndex with some additional text ")
+                        append("to make the content more substantial and realistic. ")
+                        append("This cell contains index $cellIndex in row $tableIndex.")
+                        append("</td>")
+                    }
+                    append("</tr>")
                 }
-                append("</tr>")
+                append("</table>")
+
+                // Add large list structure
+                append("<ul id='large-list'>")
+                repeat(500) { listIndex ->
+                    append("<li class='item-$listIndex' data-index='$listIndex'>")
+                    append("<div class='item-content'>")
+                    append("<h3>Item $listIndex Title</h3>")
+                    append("<p>Description for item $listIndex with detailed content ")
+                    append("that spans multiple lines and includes various information ")
+                    append("about this particular item number $listIndex.</p>")
+                    append("<span class='metadata'>Created: $(System.currentTimeMillis())</span>")
+                    append("</div>")
+                    append("</li>")
+                }
+                append("</ul>")
+
+                append("</body></html>")
             }
-            append("</table>")
-            
-            // Add large list structure
-            append("<ul id='large-list'>")
-            repeat(500) { listIndex ->
-                append("<li class='item-$listIndex' data-index='$listIndex'>")
-                append("<div class='item-content'>")
-                append("<h3>Item $listIndex Title</h3>")
-                append("<p>Description for item $listIndex with detailed content ")
-                append("that spans multiple lines and includes various information ")
-                append("about this particular item number $listIndex.</p>")
-                append("<span class='metadata'>Created: $(System.currentTimeMillis())</span>")
-                append("</div>")
-                append("</li>")
-            }
-            append("</ul>")
-            
-            append("</body></html>")
-        }
-        
+
         // Parse the large document
         val startTime = System.currentTimeMillis()
         val document = parser.parse(largeHTML)
         val parseTime = System.currentTimeMillis() - startTime
-        
+
         assertNotNull(document)
         assertEquals("Performance Test", document.title())
-        
+
         // Verify structure was parsed correctly
         val rows = document.select("tr")
         assertEquals(100, rows.size)
-        
+
         val cells = document.select("td")
         assertEquals(5000, cells.size) // 100 rows * 50 cells
-        
+
         val listItems = document.select("ul#large-list li")
         assertEquals(500, listItems.size)
-        
+
         // Test specific element access
         val specificCell = document.select("#cell-50-25").first()
         assertNotNull(specificCell)
         assertTrue(specificCell!!.text().contains("cell 50-25"))
-        
+
         val specificItem = document.select(".item-250").first()
         assertNotNull(specificItem)
         assertTrue(specificItem!!.text().contains("Item 250"))
-        
+
         // Performance should be reasonable (adjust threshold as needed)
         println("Large document parsing time: ${parseTime}ms")
         assertTrue(parseTime < 5000, "Parsing took too long: ${parseTime}ms")
@@ -655,7 +660,8 @@ class HTMLParsingTest {
 
     @Test
     fun testXMLNamespacesInHTML() {
-        val htmlWithNamespaces = """
+        val htmlWithNamespaces =
+            """
             <html xmlns="http://www.w3.org/1999/xhtml" 
                   xmlns:og="http://opengraphprotocol.org/schema/" 
                   xmlns:fb="http://www.facebook.com/2008/fbml">
@@ -672,17 +678,17 @@ class HTMLParsingTest {
                 </div>
             </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         val document = parser.parse(htmlWithNamespaces)
         assertNotNull(document)
         assertEquals("Namespace Test", document.title())
-        
+
         // Test Open Graph meta tags
         val ogTitle = document.select("meta[property=og:title]").first()
         assertNotNull(ogTitle)
         assertEquals("Test Page", ogTitle!!.attr("content"))
-        
+
         val ogDescription = document.select("meta[property=og:description]").first()
         assertNotNull(ogDescription)
         assertEquals("Test Description", ogDescription!!.attr("content"))
@@ -690,7 +696,8 @@ class HTMLParsingTest {
 
     @Test
     fun testCustomDataAttributes() {
-        val htmlWithDataAttributes = """
+        val htmlWithDataAttributes =
+            """
             <html>
             <body>
                 <div id="widget" 
@@ -706,10 +713,10 @@ class HTMLParsingTest {
                 <button data-action="submit" data-target="#form" data-async="true">Submit</button>
             </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         val document = parser.parse(htmlWithDataAttributes)
-        
+
         val widget = document.select("#widget").first()
         assertNotNull(widget)
         assertEquals("carousel", widget!!.attr("data-widget-type"))
@@ -717,13 +724,13 @@ class HTMLParsingTest {
         assertTrue(widget.attr("data-config").contains("autoplay"))
         assertEquals("5", widget.attr("data-items"))
         assertEquals("true", widget.attr("data-responsive"))
-        
+
         val items = document.select(".item")
         assertEquals(3, items.size)
         assertEquals("high", items[0].attr("data-priority"))
         assertEquals("medium", items[1].attr("data-priority"))
         assertEquals("low", items[2].attr("data-priority"))
-        
+
         val button = document.select("button").first()
         assertNotNull(button)
         assertEquals("submit", button!!.attr("data-action"))
@@ -734,29 +741,30 @@ class HTMLParsingTest {
     @Test
     fun testVeryDeeplyNestedStructure() {
         // Create extremely deep nesting to test parser limits
-        val deepHTML = buildString {
-            append("<html><body>")
-            repeat(50) { level ->
-                append("<div class='level-$level' id='div-$level'>")
+        val deepHTML =
+            buildString {
+                append("<html><body>")
+                repeat(50) { level ->
+                    append("<div class='level-$level' id='div-$level'>")
+                }
+                append("<p>Deep content at level 50</p>")
+                repeat(50) {
+                    append("</div>")
+                }
+                append("</body></html>")
             }
-            append("<p>Deep content at level 50</p>")
-            repeat(50) {
-                append("</div>")
-            }
-            append("</body></html>")
-        }
-        
+
         val document = parser.parse(deepHTML)
         assertNotNull(document)
-        
+
         // Test that deep nesting is preserved
         val deepestDiv = document.select(".level-49").first()
         assertNotNull(deepestDiv)
-        
+
         val deepParagraph = document.select("p").first()
         assertNotNull(deepParagraph)
         assertEquals("Deep content at level 50", deepParagraph!!.text())
-        
+
         // Test selector traversal through deep structure
         val divs = document.select("div")
         assertEquals(50, divs.size)
@@ -764,7 +772,8 @@ class HTMLParsingTest {
 
     @Test
     fun testSpecialCharacterEntities() {
-        val htmlWithEntities = """
+        val htmlWithEntities =
+            """
             <html>
             <body>
                 <p>HTML Entities: &amp; &lt; &gt; &quot; &#39; &nbsp;</p>
@@ -776,36 +785,36 @@ class HTMLParsingTest {
                 <p>Greek: &alpha; &beta; &gamma; &delta; &epsilon; &pi; &sigma; &omega;</p>
             </body>
             </html>
-        """.trimIndent()
-        
+            """.trimIndent()
+
         val document = parser.parse(htmlWithEntities)
         val paragraphs = document.select("p")
-        
+
         // Test that entities are properly decoded
         assertTrue(paragraphs[0].text().contains("&"))
         assertTrue(paragraphs[0].text().contains("<"))
         assertTrue(paragraphs[0].text().contains(">"))
         assertTrue(paragraphs[0].text().contains("\""))
         assertTrue(paragraphs[0].text().contains("'"))
-        
+
         // Test numeric entities
         assertTrue(paragraphs[1].text().contains("A")) // &#65;
         assertTrue(paragraphs[1].text().contains("€")) // &#8364;
         assertTrue(paragraphs[1].text().contains("™")) // &#8482;
-        
+
         // Test hex entities
         assertTrue(paragraphs[2].text().contains("A")) // &#x41;
         assertTrue(paragraphs[2].text().contains("€")) // &#x20AC;
-        
+
         // Test named entities
         assertTrue(paragraphs[3].text().contains("©"))
         assertTrue(paragraphs[3].text().contains("®"))
         assertTrue(paragraphs[3].text().contains("™"))
-        
+
         // Test math symbols
         assertTrue(paragraphs[4].text().contains("∑"))
         assertTrue(paragraphs[4].text().contains("∞"))
-        
+
         // Test Greek letters
         assertTrue(paragraphs[6].text().contains("α"))
         assertTrue(paragraphs[6].text().contains("π"))
@@ -815,29 +824,29 @@ class HTMLParsingTest {
     @Test
     fun testBoundaryConditionsAndEdgeCases() {
         val parser = DefaultFFetchHTMLParser()
-        
+
         // Test single character
         var document = parser.parse("a")
         assertNotNull(document)
         assertEquals("a", document.body().text())
-        
+
         // Test single tag
         document = parser.parse("<p>")
         assertNotNull(document)
         assertNotNull(document.select("p").first())
-        
+
         // Test only attributes
         document = parser.parse("<div class='test' id='item'>")
         assertNotNull(document)
         val div = document.select("div").first()
         assertEquals("test", div!!.attr("class"))
         assertEquals("item", div.attr("id"))
-        
+
         // Test mixed case tags
         document = parser.parse("<DIV CLASS='TEST'><P>Content</P></DIV>")
         assertNotNull(document)
         assertEquals("Content", document.select("p").text())
-        
+
         // Test tags with numbers
         document = parser.parse("<h1>Title 1</h1><h2>Title 2</h2><h6>Title 6</h6>")
         assertNotNull(document)

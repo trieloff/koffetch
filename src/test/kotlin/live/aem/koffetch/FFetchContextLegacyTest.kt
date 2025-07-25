@@ -16,7 +16,6 @@
 
 package live.aem.koffetch
 
-import io.ktor.client.HttpClient
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import live.aem.koffetch.mock.MockHTMLParser
 import org.junit.jupiter.api.Test
@@ -28,11 +27,10 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class FFetchContextLegacyTest {
-
     @Test
     fun `test FFetchContext LegacyParams default values`() {
         val legacyParams = FFetchContext.LegacyParams()
-        
+
         assertEquals(FFetchContextBuilder.DEFAULT_CHUNK_SIZE, legacyParams.chunkSize)
         assertFalse(legacyParams.cacheReload)
         assertEquals(FFetchCacheConfig.Default, legacyParams.cacheConfig)
@@ -49,19 +47,20 @@ class FFetchContextLegacyTest {
         val customClient = MockFFetchHTTPClient()
         val customParser = MockHTMLParser()
         val customHosts = mutableSetOf("legacy1.com", "legacy2.com")
-        
-        val legacyParams = FFetchContext.LegacyParams(
-            chunkSize = 200,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.NoCache,
-            sheetName = "legacy-sheet",
-            httpClient = customClient,
-            htmlParser = customParser,
-            total = 1500,
-            maxConcurrency = 12,
-            allowedHosts = customHosts
-        )
-        
+
+        val legacyParams =
+            FFetchContext.LegacyParams(
+                chunkSize = 200,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.NoCache,
+                sheetName = "legacy-sheet",
+                httpClient = customClient,
+                htmlParser = customParser,
+                total = 1500,
+                maxConcurrency = 12,
+                allowedHosts = customHosts,
+            )
+
         assertEquals(200, legacyParams.chunkSize)
         assertTrue(legacyParams.cacheReload)
         assertEquals(FFetchCacheConfig.NoCache, legacyParams.cacheConfig)
@@ -76,19 +75,19 @@ class FFetchContextLegacyTest {
     @Test
     fun `test FFetchContext LegacyParams data class behavior`() {
         val original = FFetchContext.LegacyParams(chunkSize = 100, cacheReload = true)
-        
+
         val copied = original.copy(chunkSize = 300, sheetName = "copied")
-        
+
         // Verify original is unchanged
         assertEquals(100, original.chunkSize)
         assertTrue(original.cacheReload)
         assertNull(original.sheetName)
-        
+
         // Verify copy has modifications
         assertEquals(300, copied.chunkSize)
         assertTrue(copied.cacheReload) // preserved
         assertEquals("copied", copied.sheetName)
-        
+
         assertNotSame(original, copied)
     }
 
@@ -96,26 +95,29 @@ class FFetchContextLegacyTest {
     fun `test FFetchContext LegacyParams equality and hashCode`() {
         val customClient = MockFFetchHTTPClient()
         val customParser = MockHTMLParser()
-        
-        val params1 = FFetchContext.LegacyParams(
-            chunkSize = 150, 
-            maxConcurrency = 8,
-            httpClient = customClient,
-            htmlParser = customParser
-        )
-        val params2 = FFetchContext.LegacyParams(
-            chunkSize = 150, 
-            maxConcurrency = 8,
-            httpClient = customClient,
-            htmlParser = customParser
-        )
-        val params3 = FFetchContext.LegacyParams(
-            chunkSize = 250, 
-            maxConcurrency = 8,
-            httpClient = customClient,
-            htmlParser = customParser
-        )
-        
+
+        val params1 =
+            FFetchContext.LegacyParams(
+                chunkSize = 150,
+                maxConcurrency = 8,
+                httpClient = customClient,
+                htmlParser = customParser,
+            )
+        val params2 =
+            FFetchContext.LegacyParams(
+                chunkSize = 150,
+                maxConcurrency = 8,
+                httpClient = customClient,
+                htmlParser = customParser,
+            )
+        val params3 =
+            FFetchContext.LegacyParams(
+                chunkSize = 250,
+                maxConcurrency = 8,
+                httpClient = customClient,
+                htmlParser = customParser,
+            )
+
         assertEquals(params1, params2)
         assertEquals(params1.hashCode(), params2.hashCode())
         assertTrue(params1 != params3)
@@ -126,24 +128,26 @@ class FFetchContextLegacyTest {
     fun `test FFetchContext LegacyParams with all cache configurations`() {
         val defaultParams = FFetchContext.LegacyParams(cacheConfig = FFetchCacheConfig.Default)
         assertEquals(FFetchCacheConfig.Default, defaultParams.cacheConfig)
-        
+
         val noCacheParams = FFetchContext.LegacyParams(cacheConfig = FFetchCacheConfig.NoCache)
         assertEquals(FFetchCacheConfig.NoCache, noCacheParams.cacheConfig)
-        
+
         val cacheOnlyParams = FFetchContext.LegacyParams(cacheConfig = FFetchCacheConfig.CacheOnly)
         assertEquals(FFetchCacheConfig.CacheOnly, cacheOnlyParams.cacheConfig)
-        
+
         val cacheElseLoadParams = FFetchContext.LegacyParams(cacheConfig = FFetchCacheConfig.CacheElseLoad)
         assertEquals(FFetchCacheConfig.CacheElseLoad, cacheElseLoadParams.cacheConfig)
-        
-        val customCacheParams = FFetchContext.LegacyParams(
-            cacheConfig = FFetchCacheConfig(
-                noCache = true,
-                cacheOnly = false,
-                maxAge = 7200,
-                ignoreServerCacheControl = true
+
+        val customCacheParams =
+            FFetchContext.LegacyParams(
+                cacheConfig =
+                    FFetchCacheConfig(
+                        noCache = true,
+                        cacheOnly = false,
+                        maxAge = 7200,
+                        ignoreServerCacheControl = true,
+                    ),
             )
-        )
         assertTrue(customCacheParams.cacheConfig.noCache)
         assertFalse(customCacheParams.cacheConfig.cacheOnly)
         assertEquals(7200, customCacheParams.cacheConfig.maxAge)
@@ -155,21 +159,22 @@ class FFetchContextLegacyTest {
         val customClient = MockFFetchHTTPClient()
         val customParser = MockHTMLParser()
         val customHosts = mutableSetOf("companion1.com", "companion2.com")
-        
-        val legacyParams = FFetchContext.LegacyParams(
-            chunkSize = 333,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.CacheElseLoad,
-            sheetName = "companion-test",
-            httpClient = customClient,
-            htmlParser = customParser,
-            total = 2500,
-            maxConcurrency = 18,
-            allowedHosts = customHosts
-        )
-        
+
+        val legacyParams =
+            FFetchContext.LegacyParams(
+                chunkSize = 333,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.CacheElseLoad,
+                sheetName = "companion-test",
+                httpClient = customClient,
+                htmlParser = customParser,
+                total = 2500,
+                maxConcurrency = 18,
+                allowedHosts = customHosts,
+            )
+
         val context = FFetchContext.create(legacyParams)
-        
+
         assertEquals(333, context.chunkSize)
         assertTrue(context.cacheReload)
         assertEquals(FFetchCacheConfig.CacheElseLoad, context.cacheConfig)
@@ -185,7 +190,7 @@ class FFetchContextLegacyTest {
     fun `test FFetchContext Companion create method with default LegacyParams`() {
         val defaultParams = FFetchContext.LegacyParams()
         val context = FFetchContext.create(defaultParams)
-        
+
         assertEquals(FFetchContextBuilder.DEFAULT_CHUNK_SIZE, context.chunkSize)
         assertFalse(context.cacheReload)
         assertEquals(FFetchCacheConfig.Default, context.cacheConfig)
@@ -200,21 +205,22 @@ class FFetchContextLegacyTest {
     @Test
     fun `test FFetchContext Companion createLegacy method`() {
         val customClient = MockFFetchHTTPClient()
-        
-        val context = FFetchContext.createLegacy(
-            chunkSize = 444,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.NoCache,
-            sheetName = "create-legacy",
-            httpClient = customClient
-        )
-        
+
+        val context =
+            FFetchContext.createLegacy(
+                chunkSize = 444,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.NoCache,
+                sheetName = "create-legacy",
+                httpClient = customClient,
+            )
+
         assertEquals(444, context.chunkSize)
         assertTrue(context.cacheReload)
         assertEquals(FFetchCacheConfig.NoCache, context.cacheConfig)
         assertEquals("create-legacy", context.sheetName)
         assertEquals(customClient, context.httpClient)
-        
+
         // Verify defaults for parameters not specified
         assertTrue(context.htmlParser is DefaultFFetchHTMLParser)
         assertNull(context.total)
@@ -225,7 +231,7 @@ class FFetchContextLegacyTest {
     @Test
     fun `test FFetchContext Companion createLegacy method with all defaults`() {
         val context = FFetchContext.createLegacy()
-        
+
         assertEquals(FFetchContextBuilder.DEFAULT_CHUNK_SIZE, context.chunkSize)
         assertFalse(context.cacheReload)
         assertEquals(FFetchCacheConfig.Default, context.cacheConfig)
@@ -242,11 +248,11 @@ class FFetchContextLegacyTest {
         val context1 = FFetchContext.createLegacy(chunkSize = 100)
         assertEquals(100, context1.chunkSize)
         assertFalse(context1.cacheReload) // default
-        
+
         val context2 = FFetchContext.createLegacy(cacheReload = true)
         assertEquals(FFetchContextBuilder.DEFAULT_CHUNK_SIZE, context2.chunkSize) // default
         assertTrue(context2.cacheReload)
-        
+
         val context3 = FFetchContext.createLegacy(sheetName = "partial")
         assertEquals("partial", context3.sheetName)
         assertEquals(FFetchContextBuilder.DEFAULT_CHUNK_SIZE, context3.chunkSize) // default
@@ -256,25 +262,27 @@ class FFetchContextLegacyTest {
     @Test
     fun `test FFetchContext LegacyParams with edge cases`() {
         // Test zero and negative values
-        val edgeParams = FFetchContext.LegacyParams(
-            chunkSize = 0,
-            maxConcurrency = -1,
-            total = -100
-        )
+        val edgeParams =
+            FFetchContext.LegacyParams(
+                chunkSize = 0,
+                maxConcurrency = -1,
+                total = -100,
+            )
         assertEquals(0, edgeParams.chunkSize)
         assertEquals(-1, edgeParams.maxConcurrency)
         assertEquals(-100, edgeParams.total)
-        
+
         // Test empty string sheet name
         val emptySheetParams = FFetchContext.LegacyParams(sheetName = "")
         assertEquals("", emptySheetParams.sheetName)
-        
+
         // Test maximum values
-        val maxParams = FFetchContext.LegacyParams(
-            chunkSize = Int.MAX_VALUE,
-            maxConcurrency = Int.MAX_VALUE,
-            total = Int.MAX_VALUE
-        )
+        val maxParams =
+            FFetchContext.LegacyParams(
+                chunkSize = Int.MAX_VALUE,
+                maxConcurrency = Int.MAX_VALUE,
+                total = Int.MAX_VALUE,
+            )
         assertEquals(Int.MAX_VALUE, maxParams.chunkSize)
         assertEquals(Int.MAX_VALUE, maxParams.maxConcurrency)
         assertEquals(Int.MAX_VALUE, maxParams.total)
@@ -282,16 +290,17 @@ class FFetchContextLegacyTest {
 
     @Test
     fun `test LegacyParams with complex cache configurations`() {
-        val complexCacheConfig = FFetchCacheConfig(
-            noCache = true,
-            cacheOnly = true, // contradictory but allowed
-            cacheElseLoad = true,
-            maxAge = 0,
-            ignoreServerCacheControl = true
-        )
-        
+        val complexCacheConfig =
+            FFetchCacheConfig(
+                noCache = true,
+                cacheOnly = true, // contradictory but allowed
+                cacheElseLoad = true,
+                maxAge = 0,
+                ignoreServerCacheControl = true,
+            )
+
         val params = FFetchContext.LegacyParams(cacheConfig = complexCacheConfig)
-        
+
         assertEquals(complexCacheConfig, params.cacheConfig)
         assertTrue(params.cacheConfig.noCache)
         assertTrue(params.cacheConfig.cacheOnly)
@@ -304,14 +313,14 @@ class FFetchContextLegacyTest {
     fun `test Companion methods preserve mutable collections`() {
         val originalHosts = mutableSetOf("preserve1.com", "preserve2.com")
         val legacyParams = FFetchContext.LegacyParams(allowedHosts = originalHosts)
-        
+
         val context = FFetchContext.create(legacyParams)
-        
+
         // Test that the hosts are preserved but as a separate mutable set
         assertTrue(context.allowedHosts.contains("preserve1.com"))
         assertTrue(context.allowedHosts.contains("preserve2.com"))
         assertEquals(2, context.allowedHosts.size)
-        
+
         // Test that modifying the original DOES affect the created context
         // Note: The create method shares the same mutable set reference
         originalHosts.add("new-host.com")
@@ -324,36 +333,38 @@ class FFetchContextLegacyTest {
         val customClient = MockFFetchHTTPClient()
         val customParser = MockHTMLParser()
         val hosts = mutableSetOf("roundtrip.com")
-        
+
         // Create LegacyParams with custom values
-        val originalParams = FFetchContext.LegacyParams(
-            chunkSize = 777,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.CacheOnly,
-            sheetName = "roundtrip",
-            httpClient = customClient,
-            htmlParser = customParser,
-            total = 888,
-            maxConcurrency = 13,
-            allowedHosts = hosts
-        )
-        
+        val originalParams =
+            FFetchContext.LegacyParams(
+                chunkSize = 777,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.CacheOnly,
+                sheetName = "roundtrip",
+                httpClient = customClient,
+                htmlParser = customParser,
+                total = 888,
+                maxConcurrency = 13,
+                allowedHosts = hosts,
+            )
+
         // Create context from params
         val context = FFetchContext.create(originalParams)
-        
+
         // Create new params from context values (simulating round trip)
-        val roundTripParams = FFetchContext.LegacyParams(
-            chunkSize = context.chunkSize,
-            cacheReload = context.cacheReload,
-            cacheConfig = context.cacheConfig,
-            sheetName = context.sheetName,
-            httpClient = context.httpClient,
-            htmlParser = context.htmlParser,
-            total = context.total,
-            maxConcurrency = context.maxConcurrency,
-            allowedHosts = context.allowedHosts.toMutableSet()
-        )
-        
+        val roundTripParams =
+            FFetchContext.LegacyParams(
+                chunkSize = context.chunkSize,
+                cacheReload = context.cacheReload,
+                cacheConfig = context.cacheConfig,
+                sheetName = context.sheetName,
+                httpClient = context.httpClient,
+                htmlParser = context.htmlParser,
+                total = context.total,
+                maxConcurrency = context.maxConcurrency,
+                allowedHosts = context.allowedHosts.toMutableSet(),
+            )
+
         // Verify round trip preservation
         assertEquals(originalParams.chunkSize, roundTripParams.chunkSize)
         assertEquals(originalParams.cacheReload, roundTripParams.cacheReload)

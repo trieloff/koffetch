@@ -16,7 +16,6 @@
 
 package live.aem.koffetch
 
-import io.ktor.client.HttpClient
 import live.aem.koffetch.mock.MockFFetchHTTPClient
 import live.aem.koffetch.mock.MockHTMLParser
 import org.junit.jupiter.api.Test
@@ -28,11 +27,10 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class FFetchContextTest {
-
     @Test
     fun `test FFetchContext default constructor`() {
         val context = FFetchContext()
-        
+
         assertEquals(255, context.chunkSize)
         assertEquals(5, context.maxConcurrency)
         assertFalse(context.cacheReload)
@@ -50,16 +48,17 @@ class FFetchContextTest {
         val clientConfig = FFetchClientConfig(MockFFetchHTTPClient(), MockHTMLParser())
         val requestConfig = FFetchRequestConfig(sheetName = "test", total = 500)
         val securityConfig = FFetchSecurityConfig(mutableSetOf("example.com"))
-        
-        val context = FFetchContext(
-            performanceConfig = performanceConfig,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.NoCache,
-            clientConfig = clientConfig,
-            requestConfig = requestConfig,
-            securityConfig = securityConfig
-        )
-        
+
+        val context =
+            FFetchContext(
+                performanceConfig = performanceConfig,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.NoCache,
+                clientConfig = clientConfig,
+                requestConfig = requestConfig,
+                securityConfig = securityConfig,
+            )
+
         assertEquals(100, context.chunkSize)
         assertEquals(10, context.maxConcurrency)
         assertTrue(context.cacheReload)
@@ -76,19 +75,20 @@ class FFetchContextTest {
         val customClient = MockFFetchHTTPClient()
         val customParser = MockHTMLParser()
         val allowedHosts = mutableSetOf("test.com", "api.test.com")
-        
-        val context = FFetchContext(
-            chunkSize = 150,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.CacheOnly,
-            sheetName = "products",
-            httpClient = customClient,
-            htmlParser = customParser,
-            total = 1000,
-            maxConcurrency = 15,
-            allowedHosts = allowedHosts
-        )
-        
+
+        val context =
+            FFetchContext(
+                chunkSize = 150,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.CacheOnly,
+                sheetName = "products",
+                httpClient = customClient,
+                htmlParser = customParser,
+                total = 1000,
+                maxConcurrency = 15,
+                allowedHosts = allowedHosts,
+            )
+
         assertEquals(150, context.chunkSize)
         assertTrue(context.cacheReload)
         assertEquals(FFetchCacheConfig.CacheOnly, context.cacheConfig)
@@ -103,28 +103,28 @@ class FFetchContextTest {
     @Test
     fun `test FFetchContext property delegation to config objects`() {
         val context = FFetchContext()
-        
+
         // Test that modifying delegated properties updates the underlying config objects
         context.chunkSize = 200
         assertEquals(200, context.performanceConfig.chunkSize)
-        
+
         context.maxConcurrency = 20
         assertEquals(20, context.performanceConfig.maxConcurrency)
-        
+
         val newClient = MockFFetchHTTPClient()
         context.httpClient = newClient
         assertEquals(newClient, context.clientConfig.httpClient)
-        
+
         val newParser = MockHTMLParser()
         context.htmlParser = newParser
         assertEquals(newParser, context.clientConfig.htmlParser)
-        
+
         context.sheetName = "updated"
         assertEquals("updated", context.requestConfig.sheetName)
-        
+
         context.total = 999
         assertEquals(999, context.requestConfig.total)
-        
+
         context.allowedHosts.add("new.example.com")
         assertTrue(context.securityConfig.allowedHosts.contains("new.example.com"))
     }
@@ -135,23 +135,24 @@ class FFetchContextTest {
         val customClient = MockFFetchHTTPClient()
         val customParser = MockHTMLParser()
         val customHosts = mutableSetOf("secure.com")
-        
-        val copied = original.copy(
-            chunkSize = 300,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.CacheElseLoad,
-            sheetName = "copied",
-            httpClient = customClient,
-            htmlParser = customParser,
-            total = 2000,
-            maxConcurrency = 25,
-            allowedHosts = customHosts
-        )
-        
+
+        val copied =
+            original.copy(
+                chunkSize = 300,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.CacheElseLoad,
+                sheetName = "copied",
+                httpClient = customClient,
+                htmlParser = customParser,
+                total = 2000,
+                maxConcurrency = 25,
+                allowedHosts = customHosts,
+            )
+
         // Verify original is unchanged
         assertEquals(255, original.chunkSize)
         assertFalse(original.cacheReload)
-        
+
         // Verify copy has all modifications
         assertEquals(300, copied.chunkSize)
         assertTrue(copied.cacheReload)
@@ -162,7 +163,7 @@ class FFetchContextTest {
         assertEquals(2000, copied.total)
         assertEquals(25, copied.maxConcurrency)
         assertEquals(customHosts, copied.allowedHosts)
-        
+
         assertNotSame(original, copied)
     }
 
@@ -172,15 +173,16 @@ class FFetchContextTest {
         val newPerformanceConfig = FFetchPerformanceConfig(chunkSize = 400, maxConcurrency = 30)
         val newClientConfig = FFetchClientConfig(MockFFetchHTTPClient(), MockHTMLParser())
         val newRequestConfig = FFetchRequestConfig(sheetName = "config-test", total = 3000)
-        
-        val copied = original.copyWithConfigs(
-            performanceConfig = newPerformanceConfig,
-            cacheReload = true,
-            cacheConfig = FFetchCacheConfig.NoCache,
-            clientConfig = newClientConfig,
-            requestConfig = newRequestConfig
-        )
-        
+
+        val copied =
+            original.copyWithConfigs(
+                performanceConfig = newPerformanceConfig,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.NoCache,
+                clientConfig = newClientConfig,
+                requestConfig = newRequestConfig,
+            )
+
         assertEquals(400, copied.chunkSize)
         assertEquals(30, copied.maxConcurrency)
         assertTrue(copied.cacheReload)
@@ -189,7 +191,7 @@ class FFetchContextTest {
         assertEquals(3000, copied.total)
         assertEquals(newClientConfig.httpClient, copied.httpClient)
         assertEquals(newClientConfig.htmlParser, copied.htmlParser)
-        
+
         // Verify original is unchanged
         assertEquals(255, original.chunkSize)
         assertFalse(original.cacheReload)
@@ -199,13 +201,13 @@ class FFetchContextTest {
     fun `test FFetchContext copyWithSecurity method`() {
         val original = FFetchContext()
         val securityConfig = FFetchSecurityConfig(mutableSetOf("secure1.com", "secure2.com"))
-        
+
         val copied = original.copyWithSecurity(securityConfig)
-        
+
         assertEquals(securityConfig.allowedHosts, copied.allowedHosts)
         assertTrue(copied.allowedHosts.contains("secure1.com"))
         assertTrue(copied.allowedHosts.contains("secure2.com"))
-        
+
         // Verify original is unchanged
         assertTrue(original.allowedHosts.isEmpty())
     }
@@ -214,29 +216,32 @@ class FFetchContextTest {
     fun `test FFetchContext equals and hashCode`() {
         val customClient = MockFFetchHTTPClient()
         val customParser = MockHTMLParser()
-        
-        val context1 = FFetchContext(
-            chunkSize = 100, 
-            maxConcurrency = 10, 
-            cacheReload = true,
-            httpClient = customClient,
-            htmlParser = customParser
-        )
-        val context2 = FFetchContext(
-            chunkSize = 100, 
-            maxConcurrency = 10, 
-            cacheReload = true,
-            httpClient = customClient,
-            htmlParser = customParser
-        )
-        val context3 = FFetchContext(
-            chunkSize = 200, 
-            maxConcurrency = 10, 
-            cacheReload = true,
-            httpClient = customClient,
-            htmlParser = customParser
-        )
-        
+
+        val context1 =
+            FFetchContext(
+                chunkSize = 100,
+                maxConcurrency = 10,
+                cacheReload = true,
+                httpClient = customClient,
+                htmlParser = customParser,
+            )
+        val context2 =
+            FFetchContext(
+                chunkSize = 100,
+                maxConcurrency = 10,
+                cacheReload = true,
+                httpClient = customClient,
+                htmlParser = customParser,
+            )
+        val context3 =
+            FFetchContext(
+                chunkSize = 200,
+                maxConcurrency = 10,
+                cacheReload = true,
+                httpClient = customClient,
+                htmlParser = customParser,
+            )
+
         assertEquals(context1, context2)
         assertEquals(context1.hashCode(), context2.hashCode())
         assertTrue(context1 != context3)
@@ -247,7 +252,7 @@ class FFetchContextTest {
     fun `test FFetchContext toString method`() {
         val context = FFetchContext(chunkSize = 100, sheetName = "test-sheet")
         val toString = context.toString()
-        
+
         assertTrue(toString.contains("FFetchContext"))
         assertTrue(toString.contains("chunkSize=100"))
         assertTrue(toString.contains("sheetName=test-sheet"))
@@ -261,36 +266,36 @@ class FFetchContextTest {
         val perfConfig = FFetchPerformanceConfig(chunkSize = 500, maxConcurrency = 50)
         assertEquals(500, perfConfig.chunkSize)
         assertEquals(50, perfConfig.maxConcurrency)
-        
+
         val defaultPerfConfig = FFetchPerformanceConfig()
         assertEquals(255, defaultPerfConfig.chunkSize)
         assertEquals(5, defaultPerfConfig.maxConcurrency)
-        
+
         // Test FFetchClientConfig
         val customClient = MockFFetchHTTPClient()
         val customParser = MockHTMLParser()
         val clientConfig = FFetchClientConfig(customClient, customParser)
         assertEquals(customClient, clientConfig.httpClient)
         assertEquals(customParser, clientConfig.htmlParser)
-        
+
         val defaultClientConfig = FFetchClientConfig()
         assertTrue(defaultClientConfig.httpClient is DefaultFFetchHTTPClient)
         assertTrue(defaultClientConfig.htmlParser is DefaultFFetchHTMLParser)
-        
+
         // Test FFetchRequestConfig
         val requestConfig = FFetchRequestConfig(sheetName = "request-test", total = 750)
         assertEquals("request-test", requestConfig.sheetName)
         assertEquals(750, requestConfig.total)
-        
+
         val defaultRequestConfig = FFetchRequestConfig()
         assertNull(defaultRequestConfig.sheetName)
         assertNull(defaultRequestConfig.total)
-        
+
         // Test FFetchSecurityConfig
         val hosts = mutableSetOf("host1.com", "host2.com")
         val securityConfig = FFetchSecurityConfig(hosts)
         assertEquals(hosts, securityConfig.allowedHosts)
-        
+
         val defaultSecurityConfig = FFetchSecurityConfig()
         assertTrue(defaultSecurityConfig.allowedHosts.isEmpty())
     }
@@ -298,7 +303,7 @@ class FFetchContextTest {
     @Test
     fun `test complex configuration combinations`() {
         val context = FFetchContext()
-        
+
         // Test chaining property modifications
         context.chunkSize = 100
         context.maxConcurrency = 10
@@ -306,14 +311,14 @@ class FFetchContextTest {
         context.sheetName = "chained"
         context.total = 500
         context.allowedHosts.add("chain.com")
-        
+
         assertEquals(100, context.chunkSize)
         assertEquals(10, context.maxConcurrency)
         assertTrue(context.cacheReload)
         assertEquals("chained", context.sheetName)
         assertEquals(500, context.total)
         assertTrue(context.allowedHosts.contains("chain.com"))
-        
+
         // Test that all config objects are updated
         assertEquals(100, context.performanceConfig.chunkSize)
         assertEquals(10, context.performanceConfig.maxConcurrency)
@@ -325,22 +330,22 @@ class FFetchContextTest {
     @Test
     fun `test allowedHosts mutable collection behavior`() {
         val context = FFetchContext()
-        
+
         // Test adding hosts
         context.allowedHosts.add("test1.com")
         context.allowedHosts.add("test2.com")
         assertEquals(2, context.allowedHosts.size)
-        
+
         // Test removing hosts
         context.allowedHosts.remove("test1.com")
         assertEquals(1, context.allowedHosts.size)
         assertFalse(context.allowedHosts.contains("test1.com"))
         assertTrue(context.allowedHosts.contains("test2.com"))
-        
+
         // Test clearing hosts
         context.allowedHosts.clear()
         assertTrue(context.allowedHosts.isEmpty())
-        
+
         // Test bulk operations
         val newHosts = setOf("bulk1.com", "bulk2.com", "bulk3.com")
         context.allowedHosts.addAll(newHosts)
@@ -352,13 +357,13 @@ class FFetchContextTest {
     fun `test copy method preserves mutable collections correctly`() {
         val original = FFetchContext()
         original.allowedHosts.add("original.com")
-        
+
         val copied = original.copy()
-        
+
         // Test that copied instance has same content but is a separate collection
         assertTrue(copied.allowedHosts.contains("original.com"))
         assertEquals(original.allowedHosts.size, copied.allowedHosts.size)
-        
+
         // Test that modifying copy doesn't affect original
         copied.allowedHosts.add("copied.com")
         assertFalse(original.allowedHosts.contains("copied.com"))
@@ -373,27 +378,28 @@ class FFetchContextTest {
         val zeroContext = FFetchContext(chunkSize = 0, maxConcurrency = 0)
         assertEquals(0, zeroContext.chunkSize)
         assertEquals(0, zeroContext.maxConcurrency)
-        
+
         // Test negative values
         val negativeContext = FFetchContext(chunkSize = -1, maxConcurrency = -1, total = -1)
         assertEquals(-1, negativeContext.chunkSize)
         assertEquals(-1, negativeContext.maxConcurrency)
         assertEquals(-1, negativeContext.total)
-        
+
         // Test very large values
-        val largeContext = FFetchContext(
-            chunkSize = Int.MAX_VALUE,
-            maxConcurrency = Int.MAX_VALUE,
-            total = Int.MAX_VALUE
-        )
+        val largeContext =
+            FFetchContext(
+                chunkSize = Int.MAX_VALUE,
+                maxConcurrency = Int.MAX_VALUE,
+                total = Int.MAX_VALUE,
+            )
         assertEquals(Int.MAX_VALUE, largeContext.chunkSize)
         assertEquals(Int.MAX_VALUE, largeContext.maxConcurrency)
         assertEquals(Int.MAX_VALUE, largeContext.total)
-        
+
         // Test empty and null string values
         val emptyContext = FFetchContext(sheetName = "")
         assertEquals("", emptyContext.sheetName)
-        
+
         val nullContext = FFetchContext(sheetName = null)
         assertNull(nullContext.sheetName)
     }

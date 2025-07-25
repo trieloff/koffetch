@@ -504,10 +504,10 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(5, "ffetch_map")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             val titleFlow = mockFFetch.map { entry -> entry["title"].toString().uppercase() }
             val result = titleFlow.toList()
-            
+
             assertEquals(5, result.size)
             assertEquals("TITLE 1", result[0])
             assertEquals("TITLE 5", result[4])
@@ -518,12 +518,13 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(10, "ffetch_filter")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
-            val filteredFFetch = mockFFetch.filter { entry ->
-                (entry["index"] as Int) % 2 == 0
-            }
+
+            val filteredFFetch =
+                mockFFetch.filter { entry ->
+                    (entry["index"] as Int) % 2 == 0
+                }
             val result = filteredFFetch.asFlow().toList()
-            
+
             assertEquals(5, result.size) // Only even-indexed entries
             assertTrue(result.all { (it["index"] as Int) % 2 == 0 })
         }
@@ -533,10 +534,10 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(10, "ffetch_limit")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             val limitedFFetch = mockFFetch.limit(3)
             val result = limitedFFetch.asFlow().toList()
-            
+
             assertEquals(3, result.size)
             assertEquals("ffetch_limit_1", result[0]["id"])
             assertEquals("ffetch_limit_3", result[2]["id"])
@@ -547,10 +548,10 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(10, "ffetch_skip")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             val skippedFFetch = mockFFetch.skip(3)
             val result = skippedFFetch.asFlow().toList()
-            
+
             assertEquals(7, result.size)
             assertEquals("ffetch_skip_4", result[0]["id"]) // First after skipping 3
             assertEquals("ffetch_skip_10", result[6]["id"]) // Last entry
@@ -561,10 +562,10 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(10, "ffetch_slice")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             val slicedFFetch = mockFFetch.slice(2, 6)
             val result = slicedFFetch.asFlow().toList()
-            
+
             assertEquals(4, result.size)
             assertEquals("ffetch_slice_3", result[0]["id"]) // Index 2 (skip 2)
             assertEquals("ffetch_slice_6", result[3]["id"]) // Index 5 (limit 4)
@@ -575,14 +576,15 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(20, "ffetch_chain")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
-            val transformedFFetch = mockFFetch
-                .filter { (it["index"] as Int) % 2 == 0 } // Even numbers only
-                .skip(2) // Skip first 2 even numbers (2, 4)
-                .limit(3) // Take next 3 even numbers (6, 8, 10)
-            
+
+            val transformedFFetch =
+                mockFFetch
+                    .filter { (it["index"] as Int) % 2 == 0 } // Even numbers only
+                    .skip(2) // Skip first 2 even numbers (2, 4)
+                    .limit(3) // Take next 3 even numbers (6, 8, 10)
+
             val result = transformedFFetch.asFlow().toList()
-            
+
             assertEquals(3, result.size)
             assertEquals(6, result[0]["index"] as Int)
             assertEquals(8, result[1]["index"] as Int)
@@ -593,18 +595,19 @@ class FFetchTransformationsTest {
     fun testFFetchMapWithCustomTypes() =
         runTest {
             data class ProcessedEntry(val id: String, val processedTitle: String, val score: Int)
-            
+
             val entries = TestDataGenerator.createProductEntries(5)
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
-            val processedFlow = mockFFetch.map { entry ->
-                ProcessedEntry(
-                    id = entry["id"].toString(),
-                    processedTitle = "PROCESSED: ${entry["title"]}",
-                    score = entry["title"].toString().length
-                )
-            }
-            
+
+            val processedFlow =
+                mockFFetch.map { entry ->
+                    ProcessedEntry(
+                        id = entry["id"].toString(),
+                        processedTitle = "PROCESSED: ${entry["title"]}",
+                        score = entry["title"].toString().length,
+                    )
+                }
+
             val result = processedFlow.toList()
             assertEquals(5, result.size)
             assertEquals("product_1", result[0].id)
@@ -617,14 +620,14 @@ class FFetchTransformationsTest {
         runTest {
             val emptyEntries = emptyList<FFetchEntry>()
             val mockFFetch = TestDataGenerator.createMockFFetch(emptyEntries)
-            
+
             // Test all operations with empty FFetch
             val filteredResult = mockFFetch.filter { true }.asFlow().toList()
             val limitedResult = mockFFetch.limit(5).asFlow().toList()
             val skippedResult = mockFFetch.skip(2).asFlow().toList()
             val slicedResult = mockFFetch.slice(1, 3).asFlow().toList()
             val mappedResult = mockFFetch.map { it["id"].toString() }.toList()
-            
+
             assertTrue(filteredResult.isEmpty())
             assertTrue(limitedResult.isEmpty())
             assertTrue(skippedResult.isEmpty())
@@ -637,23 +640,23 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(5, "boundary")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             // Test limit with 1 (minimum valid positive value)
             val smallLimitResult = mockFFetch.limit(1).asFlow().toList()
             assertEquals(1, smallLimitResult.size)
-            
+
             // Test skip with 0
             val zeroSkipResult = mockFFetch.skip(0).asFlow().toList()
             assertEquals(5, zeroSkipResult.size)
-            
+
             // Test slice with valid non-empty range
             val validSliceResult = mockFFetch.slice(1, 4).asFlow().toList()
             assertEquals(3, validSliceResult.size)
-            
+
             // Test large skip value (larger than available entries)
             val largeSkipResult = mockFFetch.skip(10).asFlow().toList()
             assertTrue(largeSkipResult.isEmpty())
-            
+
             // Test large limit value (larger than available entries)
             val largeLimitResult = mockFFetch.limit(100).asFlow().toList()
             assertEquals(5, largeLimitResult.size) // Should return all available
@@ -664,12 +667,12 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(5, "error_test")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             // Test that limit(0) throws an exception as expected
             assertFailsWith<IllegalArgumentException> {
                 mockFFetch.limit(0).asFlow().toList()
             }
-            
+
             // Test negative limit values through slice
             assertFailsWith<IllegalArgumentException> {
                 mockFFetch.slice(5, 3).asFlow().toList() // This will call limit(-2)
@@ -681,19 +684,19 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(5, "context")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             // Test that transformations preserve the original FFetch's URL and context
             val filteredFFetch = mockFFetch.filter { true }
             val limitedFFetch = mockFFetch.limit(3)
             val skippedFFetch = mockFFetch.skip(1)
             val slicedFFetch = mockFFetch.slice(0, 2)
-            
+
             // All transformed FFetch instances should have the same URL and context
             assertEquals(mockFFetch.url, filteredFFetch.url)
             assertEquals(mockFFetch.url, limitedFFetch.url)
             assertEquals(mockFFetch.url, skippedFFetch.url)
             assertEquals(mockFFetch.url, slicedFFetch.url)
-            
+
             assertEquals(mockFFetch.context, filteredFFetch.context)
             assertEquals(mockFFetch.context, limitedFFetch.context)
             assertEquals(mockFFetch.context, skippedFFetch.context)
@@ -705,21 +708,24 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createProductEntries(20)
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
-            val complexFilteredFFetch = mockFFetch.filter { entry ->
-                val price = entry["price"] as Double
-                val category = entry["category"].toString()
-                price > 50.0 && (category == "electronics" || category == "books")
-            }
-            
+
+            val complexFilteredFFetch =
+                mockFFetch.filter { entry ->
+                    val price = entry["price"] as Double
+                    val category = entry["category"].toString()
+                    price > 50.0 && (category == "electronics" || category == "books")
+                }
+
             val result = complexFilteredFFetch.asFlow().toList()
-            
+
             assertTrue(result.isNotEmpty())
-            assertTrue(result.all { 
-                val price = it["price"] as Double
-                val category = it["category"].toString()
-                price > 50.0 && (category == "electronics" || category == "books")
-            })
+            assertTrue(
+                result.all {
+                    val price = it["price"] as Double
+                    val category = it["category"].toString()
+                    price > 50.0 && (category == "electronics" || category == "books")
+                },
+            )
         }
 
     @Test
@@ -727,14 +733,15 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(1000, "large")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
-            val result = mockFFetch
-                .filter { (it["index"] as Int) % 10 == 0 } // Every 10th entry
-                .skip(5) // Skip first 5 matches
-                .limit(20) // Take next 20
-                .asFlow()
-                .toList()
-            
+
+            val result =
+                mockFFetch
+                    .filter { (it["index"] as Int) % 10 == 0 } // Every 10th entry
+                    .skip(5) // Skip first 5 matches
+                    .limit(20) // Take next 20
+                    .asFlow()
+                    .toList()
+
             assertEquals(20, result.size)
             assertEquals(60, result[0]["index"] as Int) // First match after skipping 5
             assertEquals(250, result[19]["index"] as Int) // 20th match
@@ -745,12 +752,12 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(5, "invalid")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             // Test that invalid parameters throw exceptions as expected
             assertFailsWith<IllegalArgumentException> {
                 mockFFetch.skip(-5).asFlow().toList()
             }
-            
+
             // Test slice edge case that would result in limit(0)
             assertFailsWith<IllegalArgumentException> {
                 mockFFetch.slice(2, 2).asFlow().toList()
@@ -762,14 +769,15 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(5, "suspend")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             // Test map with suspend transformation
-            val suspendTransform = mockFFetch.map { entry ->
-                // Simulate a suspend operation
-                delay(1)
-                "SUSPEND_${entry["id"]}"
-            }
-            
+            val suspendTransform =
+                mockFFetch.map { entry ->
+                    // Simulate a suspend operation
+                    delay(1)
+                    "SUSPEND_${entry["id"]}"
+                }
+
             val result = suspendTransform.toList()
             assertEquals(5, result.size)
             assertTrue(result.all { it.startsWith("SUSPEND_") })
@@ -781,14 +789,15 @@ class FFetchTransformationsTest {
             // Test that transformations don't eagerly load all data
             val largeEntries = TestDataGenerator.createFFetchEntries(1000, "memory")
             val mockFFetch = TestDataGenerator.createMockFFetch(largeEntries)
-            
+
             // Only take first 5 elements - should not process all 1000
-            val result = mockFFetch
-                .filter { (it["index"] as Int) > 0 } // All should pass
-                .limit(5)
-                .asFlow()
-                .toList()
-            
+            val result =
+                mockFFetch
+                    .filter { (it["index"] as Int) > 0 } // All should pass
+                    .limit(5)
+                    .asFlow()
+                    .toList()
+
             assertEquals(5, result.size)
             assertEquals("memory_1", result[0]["id"])
             assertEquals("memory_5", result[4]["id"])
@@ -799,16 +808,16 @@ class FFetchTransformationsTest {
         runTest {
             val entries = TestDataGenerator.createFFetchEntries(10, "concurrent")
             val mockFFetch = TestDataGenerator.createMockFFetch(entries)
-            
+
             // Run multiple transformations concurrently
             val job1 = async { mockFFetch.filter { true }.asFlow().toList() }
             val job2 = async { mockFFetch.map { it["id"].toString() }.toList() }
             val job3 = async { mockFFetch.limit(5).asFlow().toList() }
-            
+
             val result1 = job1.await()
             val result2 = job2.await()
             val result3 = job3.await()
-            
+
             assertEquals(10, result1.size)
             assertEquals(10, result2.size)
             assertEquals(5, result3.size)
