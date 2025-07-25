@@ -390,7 +390,17 @@ class FFetchContextBuilder {
     fun buildSecurityConfig() = FFetchSecurityConfig(allowedHosts)
 
     /** Builds the final FFetchContext with all configured settings. */
-    fun build() = FFetchContext(this)
+    fun build() = FFetchContext(
+        chunkSize = chunkSize,
+        cacheReload = cacheReload,
+        cacheConfig = cacheConfig,
+        sheetName = sheetName,
+        httpClient = httpClient,
+        htmlParser = htmlParser,
+        total = total,
+        maxConcurrency = maxConcurrency,
+        allowedHosts = allowedHosts,
+    )
 
     companion object {
         /** Default chunk size for batch operations. */
@@ -492,16 +502,25 @@ class FFetchContext(
             securityConfig = securityConfig.copy(allowedHosts = value)
         }
 
-    // Builder pattern constructor for backward compatibility
+    // Original constructor overload for backward compatibility
+    @Suppress("LongParameterList")
     constructor(
-        configBuilder: FFetchContextBuilder,
+        chunkSize: Int = FFetchContextBuilder.DEFAULT_CHUNK_SIZE,
+        cacheReload: Boolean = false,
+        cacheConfig: FFetchCacheConfig = FFetchCacheConfig.Default,
+        sheetName: String? = null,
+        httpClient: FFetchHTTPClient = DefaultFFetchHTTPClient(HttpClient()),
+        htmlParser: FFetchHTMLParser = DefaultFFetchHTMLParser(),
+        total: Int? = null,
+        maxConcurrency: Int = FFetchContextBuilder.DEFAULT_MAX_CONCURRENCY,
+        allowedHosts: MutableSet<String> = mutableSetOf(),
     ) : this(
-        performanceConfig = configBuilder.buildPerformanceConfig(),
-        cacheReload = configBuilder.cacheReload,
-        cacheConfig = configBuilder.cacheConfig,
-        clientConfig = configBuilder.buildClientConfig(),
-        requestConfig = configBuilder.buildRequestConfig(),
-        securityConfig = configBuilder.buildSecurityConfig(),
+        performanceConfig = FFetchPerformanceConfig(chunkSize, maxConcurrency),
+        cacheReload = cacheReload,
+        cacheConfig = cacheConfig,
+        clientConfig = FFetchClientConfig(httpClient, htmlParser),
+        requestConfig = FFetchRequestConfig(sheetName, total),
+        securityConfig = FFetchSecurityConfig(allowedHosts),
     )
 
     /**
@@ -567,32 +586,39 @@ class FFetchContext(
     }
 
     /**
-     * Creates a copy of this FFetchContext with optionally modified legacy parameters.
-     * For new code, prefer the parameter object-based copy method.
+     * Creates a copy of this FFetchContext with optionally modified parameters.
+     * Maintains backward compatibility with the original parameter list.
+     * For new code, prefer using copyWithConfigs() for better parameter organization.
      */
-    fun copyLegacy(
+    @Suppress("LongParameterList")
+    fun copy(
         chunkSize: Int = this.chunkSize,
         cacheReload: Boolean = this.cacheReload,
         cacheConfig: FFetchCacheConfig = this.cacheConfig,
         sheetName: String? = this.sheetName,
+        httpClient: FFetchHTTPClient = this.httpClient,
+        htmlParser: FFetchHTMLParser = this.htmlParser,
+        total: Int? = this.total,
+        maxConcurrency: Int = this.maxConcurrency,
+        allowedHosts: MutableSet<String> = this.allowedHosts.toMutableSet(),
     ): FFetchContext {
-        return createLegacy(
+        return FFetchContext(
             chunkSize = chunkSize,
             cacheReload = cacheReload,
             cacheConfig = cacheConfig,
             sheetName = sheetName,
-            httpClient = this.httpClient,
-        ).also { context ->
-            context.total = this.total
-            context.maxConcurrency = this.maxConcurrency
-            context.allowedHosts = this.allowedHosts.toMutableSet()
-        }
+            httpClient = httpClient,
+            htmlParser = htmlParser,
+            total = total,
+            maxConcurrency = maxConcurrency,
+            allowedHosts = allowedHosts,
+        )
     }
 
     /**
-     * Creates a copy with parameter object-based configuration (preferred method).
+     * Creates a copy with parameter object-based configuration (preferred for new code).
      */
-    fun copy(
+    fun copyWithConfigs(
         performanceConfig: FFetchPerformanceConfig = this.performanceConfig,
         cacheReload: Boolean = this.cacheReload,
         cacheConfig: FFetchCacheConfig = this.cacheConfig,
@@ -617,15 +643,9 @@ class FFetchContext(
     fun copyWithSecurity(
         securityConfig: FFetchSecurityConfig,
     ): FFetchContext {
-        return copy().copy(
-            performanceConfig = this.performanceConfig,
-            cacheReload = this.cacheReload,
-            cacheConfig = this.cacheConfig,
-            clientConfig = this.clientConfig,
-            requestConfig = this.requestConfig,
-        ).also { context ->
-            context.securityConfig = securityConfig
-        }
+        return copy(
+            allowedHosts = securityConfig.allowedHosts,
+        )
     }
 
     override fun equals(other: Any?): Boolean {
