@@ -17,6 +17,12 @@
 package live.aem.koffetch
 
 import io.ktor.client.HttpClient
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.RedirectResponseException
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -25,6 +31,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.io.IOException
 
 // / Represents a single entry from an AEM index response
 typealias FFetchEntry = Map<String, Any?>
@@ -255,7 +262,19 @@ class DefaultFFetchHTTPClient(private val client: HttpClient) : FFetchHTTPClient
             val response = client.get(url)
             val content = response.bodyAsText()
             return Pair(content, response)
-        } catch (e: Exception) {
+        } catch (e: ClientRequestException) {
+            throw FFetchError.NetworkError(e)
+        } catch (e: ServerResponseException) {
+            throw FFetchError.NetworkError(e)
+        } catch (e: RedirectResponseException) {
+            throw FFetchError.NetworkError(e)
+        } catch (e: HttpRequestTimeoutException) {
+            throw FFetchError.NetworkError(e)
+        } catch (e: ConnectTimeoutException) {
+            throw FFetchError.NetworkError(e)
+        } catch (e: SocketTimeoutException) {
+            throw FFetchError.NetworkError(e)
+        } catch (e: IOException) {
             throw FFetchError.NetworkError(e)
         }
     }
@@ -271,7 +290,9 @@ class DefaultFFetchHTMLParser : FFetchHTMLParser {
     override fun parse(html: String): Document {
         return try {
             Jsoup.parse(html)
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
+            throw FFetchError.DecodingError(e)
+        } catch (e: OutOfMemoryError) {
             throw FFetchError.DecodingError(e)
         }
     }
@@ -332,31 +353,45 @@ class FFetchContext(
     // Backward compatibility properties
     var chunkSize: Int
         get() = performanceConfig.chunkSize
-        set(value) { performanceConfig = performanceConfig.copy(chunkSize = value) }
+        set(value) {
+            performanceConfig = performanceConfig.copy(chunkSize = value)
+        }
 
     var maxConcurrency: Int
         get() = performanceConfig.maxConcurrency
-        set(value) { performanceConfig = performanceConfig.copy(maxConcurrency = value) }
+        set(value) {
+            performanceConfig = performanceConfig.copy(maxConcurrency = value)
+        }
 
     var httpClient: FFetchHTTPClient
         get() = clientConfig.httpClient
-        set(value) { clientConfig = clientConfig.copy(httpClient = value) }
+        set(value) {
+            clientConfig = clientConfig.copy(httpClient = value)
+        }
 
     var htmlParser: FFetchHTMLParser
         get() = clientConfig.htmlParser
-        set(value) { clientConfig = clientConfig.copy(htmlParser = value) }
+        set(value) {
+            clientConfig = clientConfig.copy(htmlParser = value)
+        }
 
     var sheetName: String?
         get() = requestConfig.sheetName
-        set(value) { requestConfig = requestConfig.copy(sheetName = value) }
+        set(value) {
+            requestConfig = requestConfig.copy(sheetName = value)
+        }
 
     var total: Int?
         get() = requestConfig.total
-        set(value) { requestConfig = requestConfig.copy(total = value) }
+        set(value) {
+            requestConfig = requestConfig.copy(total = value)
+        }
 
     var allowedHosts: MutableSet<String>
         get() = securityConfig.allowedHosts
-        set(value) { securityConfig = securityConfig.copy(allowedHosts = value) }
+        set(value) {
+            securityConfig = securityConfig.copy(allowedHosts = value)
+        }
 
     // Constructor overload for backward compatibility
     constructor(
@@ -377,6 +412,7 @@ class FFetchContext(
         requestConfig = FFetchRequestConfig(sheetName, total),
         securityConfig = FFetchSecurityConfig(allowedHosts),
     )
+
     /**
      * Creates a copy of this FFetchContext with optionally modified parameters.
      * Maintains backward compatibility with the original parameter list.
@@ -414,7 +450,10 @@ class FFetchContext(
         cacheConfig: FFetchCacheConfig = this.cacheConfig,
         clientConfig: FFetchClientConfig = this.clientConfig,
         requestConfig: FFetchRequestConfig = this.requestConfig,
-        securityConfig: FFetchSecurityConfig = this.securityConfig.copy(allowedHosts = this.securityConfig.allowedHosts.toMutableSet()),
+        securityConfig: FFetchSecurityConfig =
+            this.securityConfig.copy(
+                allowedHosts = this.securityConfig.allowedHosts.toMutableSet(),
+            ),
     ): FFetchContext {
         return FFetchContext(
             performanceConfig = performanceConfig,

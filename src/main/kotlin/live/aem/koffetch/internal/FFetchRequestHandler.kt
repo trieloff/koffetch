@@ -9,6 +9,7 @@ package live.aem.koffetch.internal
 
 import io.ktor.client.statement.HttpResponse
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import live.aem.koffetch.FFetchContext
 import live.aem.koffetch.FFetchEntry
@@ -114,8 +115,8 @@ internal object FFetchRequestHandler {
             return json.decodeFromString(FFetchResponse.serializer(), data)
         } catch (e: FFetchError) {
             throw e
-        } catch (e: Exception) {
-            throw FFetchError.NetworkError(e)
+        } catch (e: SerializationException) {
+            throw FFetchError.DecodingError(e)
         }
     }
 

@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.supervisorScope
 import live.aem.koffetch.FFetch
 import live.aem.koffetch.FFetchEntry
-import live.aem.koffetch.extensions.internal.*
+import live.aem.koffetch.FFetchError
+import live.aem.koffetch.extensions.internal.createErrorEntry
 import java.net.URL
 
 // MARK: - Constants
@@ -140,7 +141,7 @@ private suspend fun FFetch.fetchDocumentData(
                 resolvedURL = resolvedURL,
             )
         }
-    } catch (e: Exception) {
+    } catch (e: FFetchError.NetworkError) {
         createErrorEntry(
             entry = entry,
             newFieldName = newFieldName,
@@ -148,7 +149,6 @@ private suspend fun FFetch.fetchDocumentData(
         )
     }
 }
-
 
 // / Parse document data and return updated entry
 private fun FFetch.parseDocumentData(
@@ -162,7 +162,7 @@ private fun FFetch.parseDocumentData(
         entry.toMutableMap().apply {
             put(newFieldName, document)
         }.toMap()
-    } catch (e: Exception) {
+    } catch (e: FFetchError.DecodingError) {
         createErrorEntry(
             entry = entry,
             newFieldName = newFieldName,
@@ -172,7 +172,6 @@ private fun FFetch.parseDocumentData(
 }
 
 // / Create an entry with error information
-
 
 // MARK: - Hostname Security Configuration
 

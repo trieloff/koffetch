@@ -8,6 +8,7 @@
 package live.aem.koffetch.extensions.internal
 
 import live.aem.koffetch.FFetch
+import java.net.MalformedURLException
 import java.net.URL
 
 // / Check if a URL string is valid
@@ -50,7 +51,7 @@ internal fun FFetch.resolveDocumentURL(urlString: String): URL? {
             }
             else -> null
         }
-    } catch (e: Exception) {
+    } catch (e: MalformedURLException) {
         null
     }
 }
