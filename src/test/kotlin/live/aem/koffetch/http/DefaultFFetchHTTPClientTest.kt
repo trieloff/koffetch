@@ -12,6 +12,7 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpHeaders
@@ -824,5 +825,49 @@ class DefaultFFetchHTTPClientTest {
 
             assertEquals("Default cache test", content)
             assertEquals(HttpStatusCode.OK, response.status)
+        }
+
+    @Test
+    fun testHttpStatusExceptionHandling() =
+        runTest {
+            // Test 4xx Client Error
+            val clientErrorEngine =
+                MockEngine { request ->
+                    respond(
+                        content = ByteReadChannel("Bad Request"),
+                        status = HttpStatusCode.BadRequest,
+                    )
+                }
+            val clientErrorClient = DefaultFFetchHTTPClient(HttpClient(clientErrorEngine))
+            // Note: The default client doesn't automatically throw on 4xx,
+            // so let's just test it returns the error content
+            val (content, response) = clientErrorClient.fetch("https://example.com/client-error")
+            assertEquals("Bad Request", content)
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+
+            // Test 5xx Server Error
+            val serverErrorEngine =
+                MockEngine { request ->
+                    respond(
+                        content = ByteReadChannel("Internal Server Error"),
+                        status = HttpStatusCode.InternalServerError,
+                    )
+                }
+            val serverErrorClient = DefaultFFetchHTTPClient(HttpClient(serverErrorEngine))
+            val (serverContent, serverResponse) = serverErrorClient.fetch("https://example.com/server-error")
+            assertEquals("Internal Server Error", serverContent)
+            assertEquals(HttpStatusCode.InternalServerError, serverResponse.status)
+
+            // Test HttpRequestTimeoutException
+            val requestTimeoutEngine =
+                MockEngine { request ->
+                    throw HttpRequestTimeoutException("http://example.com", 5000)
+                }
+            val requestTimeoutClient = DefaultFFetchHTTPClient(HttpClient(requestTimeoutEngine))
+            val requestTimeoutError =
+                assertFailsWith<FFetchError.NetworkError> {
+                    requestTimeoutClient.fetch("https://example.com/request-timeout")
+                }
+            assertTrue(requestTimeoutError.cause is HttpRequestTimeoutException)
         }
 }

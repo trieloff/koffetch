@@ -351,6 +351,32 @@ class HTMLParsingTest {
     }
 
     @Test
+    fun testDefaultFFetchHTMLParserWithExtremeCases() {
+        val parser = DefaultFFetchHTMLParser()
+
+        // Test with extremely large HTML that could potentially cause issues
+        val largeHtml = "<html><body>" + "x".repeat(10000) + "</body></html>"
+        val largeDoc = parser.parse(largeHtml)
+        assertNotNull(largeDoc)
+
+        // Test with deeply nested HTML
+        val deeplyNested =
+            (1..100).fold("<html><body>") { acc, _ -> "$acc<div>" } +
+                "content" +
+                (1..100).fold("") { acc, _ -> "$acc</div>" } + "</body></html>"
+
+        val nestedDoc = parser.parse(deeplyNested)
+        assertNotNull(nestedDoc)
+        assertTrue(nestedDoc.select("div").size > 0)
+
+        // Test normal parsing still works
+        val normalHtml = "<html><head><title>Test</title></head><body><p>Content</p></body></html>"
+        val normalDoc = parser.parse(normalHtml)
+        assertEquals("Test", normalDoc.title())
+        assertEquals("Content", normalDoc.select("p").text())
+    }
+
+    @Test
     fun testNullHTMLInput() {
         val parser = DefaultFFetchHTMLParser()
 
