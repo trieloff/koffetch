@@ -21,10 +21,12 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.serializer
 import live.aem.koffetch.FFetchResponse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class FFetchResponseSerializationTest {
@@ -336,5 +338,83 @@ class FFetchResponseSerializationTest {
         assertEquals("Article with nulls", entries[0]["title"])
         assertEquals("null", entries[0]["author"])
         assertEquals("null", entries[1]["title"])
+    }
+
+    @Test
+    fun `test serializer descriptor and serialization`() {
+        val serializer = FFetchResponse.serializer()
+
+        // Test serializer descriptor
+        assertNotNull(serializer.descriptor)
+        assertEquals("live.aem.koffetch.FFetchResponse", serializer.descriptor.serialName)
+        assertEquals(4, serializer.descriptor.elementsCount)
+
+        // Test round-trip serialization/deserialization
+        val original =
+            FFetchResponse(
+                total = 100,
+                offset = 10,
+                limit = 25,
+                data =
+                    listOf(
+                        buildJsonObject {
+                            put("title", "Test Article")
+                            put("content", "Test content")
+                        },
+                    ),
+            )
+
+        val serialized = json.encodeToString(serializer, original)
+        val deserialized = json.decodeFromString(serializer, serialized)
+
+        assertEquals(original.total, deserialized.total)
+        assertEquals(original.offset, deserialized.offset)
+        assertEquals(original.limit, deserialized.limit)
+        assertEquals(original.data.size, deserialized.data.size)
+    }
+
+    @Test
+    fun `test serializer with complex nested structures`() {
+        val complexResponse =
+            FFetchResponse(
+                total = 1,
+                offset = 0,
+                limit = 1,
+                data =
+                    listOf(
+                        buildJsonObject {
+                            put(
+                                "nested",
+                                buildJsonObject {
+                                    put(
+                                        "level2",
+                                        buildJsonObject {
+                                            put("value", "deep value")
+                                        },
+                                    )
+                                },
+                            )
+                            put(
+                                "array",
+                                kotlinx.serialization.json.JsonArray(
+                                    listOf(
+                                        JsonPrimitive("item1"),
+                                        JsonPrimitive("item2"),
+                                    ),
+                                ),
+                            )
+                        },
+                    ),
+            )
+
+        val serialized = json.encodeToString(FFetchResponse.serializer(), complexResponse)
+        val deserialized = json.decodeFromString<FFetchResponse>(serialized)
+
+        assertEquals(1, deserialized.total)
+        assertEquals(1, deserialized.data.size)
+
+        val entry = deserialized.data[0]
+        assertTrue(entry["nested"] is JsonObject)
+        assertTrue(entry["array"] is kotlinx.serialization.json.JsonArray)
     }
 }
