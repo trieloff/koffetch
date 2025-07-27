@@ -12,8 +12,11 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.RedirectResponseException
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -869,5 +872,84 @@ class DefaultFFetchHTTPClientTest {
                     requestTimeoutClient.fetch("https://example.com/request-timeout")
                 }
             assertTrue(requestTimeoutError.cause is HttpRequestTimeoutException)
+        }
+
+    @Test
+    fun testClientRequestException() =
+        runTest {
+            // Create a client with expectSuccess = true to trigger ClientRequestException
+            val client = DefaultFFetchHTTPClient(
+                HttpClient(MockEngine { request ->
+                    respond(
+                        content = ByteReadChannel("Client error"),
+                        status = HttpStatusCode.BadRequest,
+                        headers = headersOf(HttpHeaders.ContentType, "text/plain")
+                    )
+                }) {
+                    expectSuccess = true
+                }
+            )
+
+            val error =
+                assertFailsWith<FFetchError.NetworkError> {
+                    client.fetch("https://example.com/client-error")
+                }
+
+            assertTrue(error.cause is ClientRequestException)
+            assertContains(error.message ?: "", "Network error")
+        }
+
+    @Test
+    fun testServerResponseException() =
+        runTest {
+            // Create a client with expectSuccess = true to trigger ServerResponseException
+            val client = DefaultFFetchHTTPClient(
+                HttpClient(MockEngine { request ->
+                    respond(
+                        content = ByteReadChannel("Server error"),
+                        status = HttpStatusCode.InternalServerError,
+                        headers = headersOf(HttpHeaders.ContentType, "text/plain")
+                    )
+                }) {
+                    expectSuccess = true
+                }
+            )
+
+            val error =
+                assertFailsWith<FFetchError.NetworkError> {
+                    client.fetch("https://example.com/server-error")
+                }
+
+            assertTrue(error.cause is ServerResponseException)
+            assertContains(error.message ?: "", "Network error")
+        }
+
+    @Test
+    fun testRedirectResponseException() =
+        runTest {
+            // Create a client with followRedirects = false to trigger RedirectResponseException
+            val client = DefaultFFetchHTTPClient(
+                HttpClient(MockEngine { request ->
+                    respond(
+                        content = ByteReadChannel("Redirect"),
+                        status = HttpStatusCode.MovedPermanently,
+                        headers = headersOf(
+                            HttpHeaders.Location to listOf("https://example.com/new-location"),
+                            HttpHeaders.ContentType to listOf("text/plain")
+                        )
+                    )
+                }) {
+                    followRedirects = false
+                    expectSuccess = true
+                }
+            )
+
+            val error =
+                assertFailsWith<FFetchError.NetworkError> {
+                    client.fetch("https://example.com/redirect")
+                }
+
+            assertTrue(error.cause is RedirectResponseException)
+            assertContains(error.message ?: "", "Network error")
         }
 }
