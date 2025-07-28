@@ -878,17 +878,20 @@ class DefaultFFetchHTTPClientTest {
     fun testClientRequestException() =
         runTest {
             // Create a client with expectSuccess = true to trigger ClientRequestException
-            val client = DefaultFFetchHTTPClient(
-                HttpClient(MockEngine { request ->
-                    respond(
-                        content = ByteReadChannel("Client error"),
-                        status = HttpStatusCode.BadRequest,
-                        headers = headersOf(HttpHeaders.ContentType, "text/plain")
-                    )
-                }) {
-                    expectSuccess = true
-                }
-            )
+            val client =
+                DefaultFFetchHTTPClient(
+                    HttpClient(
+                        MockEngine { request ->
+                            respond(
+                                content = ByteReadChannel("Client error"),
+                                status = HttpStatusCode.BadRequest,
+                                headers = headersOf(HttpHeaders.ContentType, "text/plain"),
+                            )
+                        },
+                    ) {
+                        expectSuccess = true
+                    },
+                )
 
             val error =
                 assertFailsWith<FFetchError.NetworkError> {
@@ -903,17 +906,20 @@ class DefaultFFetchHTTPClientTest {
     fun testServerResponseException() =
         runTest {
             // Create a client with expectSuccess = true to trigger ServerResponseException
-            val client = DefaultFFetchHTTPClient(
-                HttpClient(MockEngine { request ->
-                    respond(
-                        content = ByteReadChannel("Server error"),
-                        status = HttpStatusCode.InternalServerError,
-                        headers = headersOf(HttpHeaders.ContentType, "text/plain")
-                    )
-                }) {
-                    expectSuccess = true
-                }
-            )
+            val client =
+                DefaultFFetchHTTPClient(
+                    HttpClient(
+                        MockEngine { request ->
+                            respond(
+                                content = ByteReadChannel("Server error"),
+                                status = HttpStatusCode.InternalServerError,
+                                headers = headersOf(HttpHeaders.ContentType, "text/plain"),
+                            )
+                        },
+                    ) {
+                        expectSuccess = true
+                    },
+                )
 
             val error =
                 assertFailsWith<FFetchError.NetworkError> {
@@ -928,21 +934,25 @@ class DefaultFFetchHTTPClientTest {
     fun testRedirectResponseException() =
         runTest {
             // Create a client with followRedirects = false to trigger RedirectResponseException
-            val client = DefaultFFetchHTTPClient(
-                HttpClient(MockEngine { request ->
-                    respond(
-                        content = ByteReadChannel("Redirect"),
-                        status = HttpStatusCode.MovedPermanently,
-                        headers = headersOf(
-                            HttpHeaders.Location to listOf("https://example.com/new-location"),
-                            HttpHeaders.ContentType to listOf("text/plain")
-                        )
-                    )
-                }) {
-                    followRedirects = false
-                    expectSuccess = true
-                }
-            )
+            val client =
+                DefaultFFetchHTTPClient(
+                    HttpClient(
+                        MockEngine { request ->
+                            respond(
+                                content = ByteReadChannel("Redirect"),
+                                status = HttpStatusCode.MovedPermanently,
+                                headers =
+                                    headersOf(
+                                        HttpHeaders.Location to listOf("https://example.com/new-location"),
+                                        HttpHeaders.ContentType to listOf("text/plain"),
+                                    ),
+                            )
+                        },
+                    ) {
+                        followRedirects = false
+                        expectSuccess = true
+                    },
+                )
 
             val error =
                 assertFailsWith<FFetchError.NetworkError> {
