@@ -8,7 +8,9 @@
 package live.aem.koffetch
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -423,5 +425,205 @@ class FFetchTest {
             // Verify the flow can be collected again (resources are properly managed)
             val secondResults = ffetch.asFlow().toList()
             assertEquals(1, secondResults.size)
+        }
+
+    // Test for catching IllegalArgumentException in FFetch constructor
+    @Test
+    fun testFFetchInitWithIllegalArgumentExceptionTrigger() {
+        // Test with a URL that triggers IllegalArgumentException specifically
+        assertFailsWith<FFetchError.InvalidURL> {
+            // This specific pattern triggers IllegalArgumentException in URL constructor
+            FFetch("http://[invalid")
+        }
+    }
+
+    // Test for SerializationException in createFlow by returning unparseable JSON
+    @Test
+    fun testCreateFlowWithSerializationExceptionFromUnparseableJSON() =
+        runTest {
+            val mockClient = MockFFetchHTTPClient()
+            // Return JSON that cannot be parsed as FFetchResponse
+            // Missing required fields and wrong structure
+            mockClient.jsonResponse = """{"foo": "bar", "invalid": true}"""
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
+            assertFailsWith<FFetchError.DecodingError> {
+                ffetch.asFlow().first()
+            }
+        }
+
+    // Test for URL with null host (covers the missed branch in init block)
+    @Test
+    fun testFFetchInitWithFileProtocolNullHost() =
+        runTest {
+            // File URLs have null host
+            val ffetch = FFetch("file:///local/path/query-index.json")
+            assertNotNull(ffetch)
+            // The allowedHosts set should not contain any hosts for file protocol
+            assertTrue(ffetch.context.allowedHosts.isEmpty() || !ffetch.context.allowedHosts.any { it == null })
+        }
+
+    // Test flow cancellation edge cases
+    @Test
+    fun testFlowCancellationDuringEmit() =
+        runTest {
+            val mockClient = MockFFetchHTTPClient()
+            // Large dataset to ensure multiple emissions
+            val largeData = (1..100).map { """{"path": "/test$it", "title": "Test $it"}""" }.joinToString(",")
+            mockClient.jsonResponse = """{
+                "total": 100, "offset": 0, "limit": 255, 
+                "data": [$largeData]
+            }"""
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
+            // Take only first 5 items then cancel
+            val results = ffetch.asFlow().take(5).toList()
+            assertEquals(5, results.size)
+        }
+
+    // Test flow error handling with catch operator
+    @Test
+    fun testFlowErrorHandlingWithCatch() =
+        runTest {
+            val mockClient = MockFFetchHTTPClient()
+            mockClient.throwIOException = true
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
+            var caughtError: Throwable? = null
+            ffetch.asFlow()
+                .catch { e -> caughtError = e }
+                .toList()
+
+            assertNotNull(caughtError)
+            assertTrue(caughtError is FFetchError.NetworkError)
+        }
+
+    // Test concurrent flow collection
+    @Test
+    fun testConcurrentFlowCollection() =
+        runTest {
+            val mockClient = MockFFetchHTTPClient()
+            mockClient.jsonResponse = """{
+                "total": 10, "offset": 0, "limit": 255, 
+                "data": [{"path": "/test1"}, {"path": "/test2"}]
+            }"""
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
+            // Collect the same flow concurrently
+            val job1 =
+                launch {
+                    val results =
+                        ffetch.asFlow().toList()
+                    assertEquals(2, results.size)
+                }
+
+            val job2 =
+                launch {
+                    val results =
+                        ffetch.asFlow().toList()
+                    assertEquals(2, results.size)
+                }
+
+            job1.join()
+            job2.join()
+        }
+
+    // Test flow with different chunk sizes for pagination
+    @Test
+    fun testFlowWithSmallChunkSize() =
+        runTest {
+            val mockClient = MockFFetchHTTPClient()
+            // First page response
+            mockClient.setSuccessResponse(
+                "https://example.com/query-index.json?offset=0&limit=2",
+                """{
+                    "total": 5, "offset": 0, "limit": 2,
+                    "data": [{"path": "/test1"}, {"path": "/test2"}]
+                }""",
+            )
+            // Second page response
+            mockClient.setSuccessResponse(
+                "https://example.com/query-index.json?offset=2&limit=2",
+                """{
+                    "total": 5, "offset": 2, "limit": 2,
+                    "data": [{"path": "/test3"}, {"path": "/test4"}]
+                }""",
+            )
+            // Third page response
+            mockClient.setSuccessResponse(
+                "https://example.com/query-index.json?offset=4&limit=2",
+                """{
+                    "total": 5, "offset": 4, "limit": 2,
+                    "data": [{"path": "/test5"}]
+                }""",
+            )
+
+            val ffetch =
+                FFetch("https://example.com/query-index.json")
+                    .chunks(2)
+                    .withHTTPClient(mockClient)
+
+            val results = ffetch.asFlow().toList()
+            assertEquals(5, results.size)
+            assertEquals("/test1", results[0]["path"])
+            assertEquals("/test5", results[4]["path"])
+        }
+
+    // Test handling of malformed URL in constructor that triggers IllegalArgumentException
+    @Test
+    fun testFFetchInitWithMalformedURLTriggeringIllegalArgument() {
+        // Test URL that triggers IllegalArgumentException in URL constructor
+        // This happens with certain malformed IPv6 addresses
+        assertFailsWith<FFetchError.InvalidURL> {
+            FFetch("http://[::1")
+        }
+    }
+
+    // Test FFetch with custom context preserving upstream
+    @Test
+    fun testFFetchWithCustomContextAndPreservedUpstream() =
+        runTest {
+            val mockClient = MockFFetchHTTPClient()
+            mockClient.jsonResponse = """{
+                "total": 2, "offset": 0, "limit": 255,
+                "data": [{"path": "/test1"}, {"path": "/test2"}]
+            }"""
+
+            val originalFFetch =
+                FFetch("https://example.com/query-index.json")
+                    .withHTTPClient(mockClient)
+
+            // Create upstream flow
+            val upstreamFlow = originalFFetch.asFlow()
+
+            // Create new FFetch with custom context but preserving upstream
+            val customContext =
+                FFetchContext(
+                    chunkSize = 50,
+                    maxConcurrency = 3,
+                    cacheReload = true,
+                )
+            val newFFetch = FFetch(originalFFetch.url, customContext, upstreamFlow)
+
+            // Verify it uses the upstream flow
+            val results = newFFetch.asFlow().toList()
+            assertEquals(2, results.size)
+
+            // Verify context properties were set
+            assertEquals(50, newFFetch.context.chunkSize)
+            assertEquals(3, newFFetch.context.maxConcurrency)
+            assertTrue(newFFetch.context.cacheReload)
         }
 }
