@@ -7,7 +7,6 @@
 
 package live.aem.koffetch
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -21,7 +20,6 @@ import java.net.URL
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -524,15 +522,19 @@ class FFetchTest {
                     .withHTTPClient(mockClient)
 
             // Collect the same flow concurrently
-            val job1 = launch {
-                val results = ffetch.asFlow().toList()
-                assertEquals(2, results.size)
-            }
+            val job1 =
+                launch {
+                    val results =
+                        ffetch.asFlow().toList()
+                    assertEquals(2, results.size)
+                }
 
-            val job2 = launch {
-                val results = ffetch.asFlow().toList()
-                assertEquals(2, results.size)
-            }
+            val job2 =
+                launch {
+                    val results =
+                        ffetch.asFlow().toList()
+                    assertEquals(2, results.size)
+                }
 
             job1.join()
             job2.join()
@@ -549,7 +551,7 @@ class FFetchTest {
                 """{
                     "total": 5, "offset": 0, "limit": 2,
                     "data": [{"path": "/test1"}, {"path": "/test2"}]
-                }"""
+                }""",
             )
             // Second page response
             mockClient.setSuccessResponse(
@@ -557,7 +559,7 @@ class FFetchTest {
                 """{
                     "total": 5, "offset": 2, "limit": 2,
                     "data": [{"path": "/test3"}, {"path": "/test4"}]
-                }"""
+                }""",
             )
             // Third page response
             mockClient.setSuccessResponse(
@@ -565,7 +567,7 @@ class FFetchTest {
                 """{
                     "total": 5, "offset": 4, "limit": 2,
                     "data": [{"path": "/test5"}]
-                }"""
+                }""",
             )
 
             val ffetch =
@@ -607,17 +609,18 @@ class FFetchTest {
             val upstreamFlow = originalFFetch.asFlow()
 
             // Create new FFetch with custom context but preserving upstream
-            val customContext = FFetchContext(
-                chunkSize = 50,
-                maxConcurrency = 3,
-                cacheReload = true
-            )
+            val customContext =
+                FFetchContext(
+                    chunkSize = 50,
+                    maxConcurrency = 3,
+                    cacheReload = true,
+                )
             val newFFetch = FFetch(originalFFetch.url, customContext, upstreamFlow)
 
             // Verify it uses the upstream flow
             val results = newFFetch.asFlow().toList()
             assertEquals(2, results.size)
-            
+
             // Verify context properties were set
             assertEquals(50, newFFetch.context.chunkSize)
             assertEquals(3, newFFetch.context.maxConcurrency)
