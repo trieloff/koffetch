@@ -94,7 +94,10 @@ class DefaultFFetchHTMLParserExceptionTest {
             "\\x00\\x01\\x02",
             
             // Very deeply nested structures (simplified to avoid actual stack overflow)
-            (1..50).fold("<html><body>") { acc, _ -> "$acc<div>" } + "content" + (1..50).fold("") { acc, _ -> "$acc</div>" } + "</body></html>",
+            (1..50).fold("<html><body>") { acc, _ -> "$acc<div>" } + 
+                "content" + 
+                (1..50).fold("") { acc, _ -> "$acc</div>" } + 
+                "</body></html>",
             
             // Large attributes
             "<div class='" + "x".repeat(1000) + "'>content</div>",
@@ -219,3 +222,4 @@ class DefaultFFetchHTMLParserExceptionTest {
         }
     }
 }
+

@@ -172,7 +172,9 @@ class DefaultFFetchHTMLParserCoverageTest {
             },
             
             // Malformed DOCTYPE
-            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\" [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>",
+            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" " +
+                "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\" " +
+                "[<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>",
             
             // Script injection attempts
             "<script>alert('xss')</script><img src=x onerror=alert('xss')>",

@@ -35,7 +35,10 @@ class DefaultFFetchHTMLParserExceptionCoverageTest {
             "\uD800\uD800<html>test</html>", // Two high surrogates
             "\uDC00\uDC00<html>test</html>", // Two low surrogates
             // Extreme nesting that might hit parser limits
-            (1..10000).fold("<html>") { acc, _ -> "$acc<div>" } + "x" + (1..10000).fold("") { acc, _ -> "$acc</div>" } + "</html>",
+            (1..10000).fold("<html>") { acc, _ -> "$acc<div>" } + 
+                "x" + 
+                (1..10000).fold("") { acc, _ -> "$acc</div>" } + 
+                "</html>",
             // Invalid encoding sequences
             String(byteArrayOf(-1, -2, -3, -4)),
             // Potential buffer overflow attempts
