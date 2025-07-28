@@ -403,4 +403,157 @@ class FFetchContextTest {
         val nullContext = FFetchContext(sheetName = null)
         assertNull(nullContext.sheetName)
     }
+
+    @Test
+    fun `test setClientConfig method`() {
+        val context = FFetchContext()
+        val originalConfig = context.clientConfig
+
+        val newClient = MockFFetchHTTPClient()
+        val newParser = MockHTMLParser()
+        val newClientConfig = FFetchClientConfig(newClient, newParser)
+
+        // Test setting new client config
+        context.clientConfig = newClientConfig
+
+        // Verify the config was updated
+        assertEquals(newClientConfig, context.clientConfig)
+        assertEquals(newClient, context.httpClient)
+        assertEquals(newParser, context.htmlParser)
+        assertNotSame(originalConfig, context.clientConfig)
+    }
+
+    @Test
+    fun `test setSecurityConfig method`() {
+        val context = FFetchContext()
+        val originalConfig = context.securityConfig
+
+        val newHosts = mutableSetOf("secure1.com", "secure2.com", "secure3.com")
+        val newSecurityConfig = FFetchSecurityConfig(newHosts)
+
+        // Test setting new security config
+        context.securityConfig = newSecurityConfig
+
+        // Verify the config was updated
+        assertEquals(newSecurityConfig, context.securityConfig)
+        assertEquals(newHosts, context.allowedHosts)
+        assertTrue(context.allowedHosts.contains("secure1.com"))
+        assertTrue(context.allowedHosts.contains("secure2.com"))
+        assertTrue(context.allowedHosts.contains("secure3.com"))
+        assertNotSame(originalConfig, context.securityConfig)
+    }
+
+    @Test
+    fun `test copyWithConfigs default parameters`() {
+        val original =
+            FFetchContext(
+                chunkSize = 100,
+                maxConcurrency = 10,
+                cacheReload = true,
+                sheetName = "test",
+                total = 500,
+            )
+        original.allowedHosts.add("original.com")
+
+        // Test copyWithConfigs with no parameters (all defaults)
+        val copied = original.copyWithConfigs()
+
+        // Verify all values are preserved
+        assertEquals(100, copied.chunkSize)
+        assertEquals(10, copied.maxConcurrency)
+        assertTrue(copied.cacheReload)
+        assertEquals("test", copied.sheetName)
+        assertEquals(500, copied.total)
+        assertTrue(copied.allowedHosts.contains("original.com"))
+
+        // Verify configs are same objects
+        assertEquals(original.performanceConfig, copied.performanceConfig)
+        assertEquals(original.clientConfig, copied.clientConfig)
+        assertEquals(original.requestConfig, copied.requestConfig)
+        assertEquals(original.cacheConfig, copied.cacheConfig)
+    }
+
+    @Test
+    fun `test FFetchContext companion object create method`() {
+        val customClient = MockFFetchHTTPClient()
+        val customParser = MockHTMLParser()
+        val customHosts = mutableSetOf("legacy1.com", "legacy2.com")
+
+        val legacyParams =
+            FFetchContext.LegacyParams(
+                chunkSize = 150,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.NoCache,
+                sheetName = "legacy",
+                httpClient = customClient,
+                htmlParser = customParser,
+                total = 1500,
+                maxConcurrency = 15,
+                allowedHosts = customHosts,
+            )
+
+        val context = FFetchContext.create(legacyParams)
+
+        // Verify all parameters were set correctly
+        assertEquals(150, context.chunkSize)
+        assertTrue(context.cacheReload)
+        assertEquals(FFetchCacheConfig.NoCache, context.cacheConfig)
+        assertEquals("legacy", context.sheetName)
+        assertEquals(customClient, context.httpClient)
+        assertEquals(customParser, context.htmlParser)
+        assertEquals(1500, context.total)
+        assertEquals(15, context.maxConcurrency)
+        assertEquals(customHosts, context.allowedHosts)
+    }
+
+    @Test
+    fun `test FFetchContext companion object createLegacy method`() {
+        val customClient = MockFFetchHTTPClient()
+
+        val context =
+            FFetchContext.createLegacy(
+                chunkSize = 200,
+                cacheReload = true,
+                cacheConfig = FFetchCacheConfig.CacheOnly,
+                sheetName = "legacy-create",
+                httpClient = customClient,
+            )
+
+        // Verify all parameters were set correctly
+        assertEquals(200, context.chunkSize)
+        assertTrue(context.cacheReload)
+        assertEquals(FFetchCacheConfig.CacheOnly, context.cacheConfig)
+        assertEquals("legacy-create", context.sheetName)
+        assertEquals(customClient, context.httpClient)
+
+        // Verify defaults were applied for unspecified parameters
+        assertEquals(5, context.maxConcurrency) // default
+        assertNull(context.total) // default
+        assertTrue(context.allowedHosts.isEmpty()) // default
+    }
+
+    @Test
+    fun `test copyWithConfigs with partial parameters preserves unspecified configs`() {
+        val original = FFetchContext()
+        original.allowedHosts.add("test.com")
+
+        // Only change performance config
+        val newPerfConfig = FFetchPerformanceConfig(chunkSize = 999, maxConcurrency = 99)
+        val copied = original.copyWithConfigs(performanceConfig = newPerfConfig)
+
+        // Verify performance config changed
+        assertEquals(999, copied.chunkSize)
+        assertEquals(99, copied.maxConcurrency)
+
+        // Verify other configs preserved
+        assertEquals(original.cacheReload, copied.cacheReload)
+        assertEquals(original.cacheConfig, copied.cacheConfig)
+        assertEquals(original.clientConfig, copied.clientConfig)
+        assertEquals(original.requestConfig, copied.requestConfig)
+
+        // Verify security config is a copy
+        assertTrue(copied.allowedHosts.contains("test.com"))
+        copied.allowedHosts.add("new.com")
+        assertFalse(original.allowedHosts.contains("new.com"))
+    }
 }

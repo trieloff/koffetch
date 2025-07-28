@@ -377,4 +377,36 @@ class FFetchContextLegacyTest {
         assertEquals(originalParams.maxConcurrency, roundTripParams.maxConcurrency)
         assertEquals(originalParams.allowedHosts, roundTripParams.allowedHosts)
     }
+
+    @Test
+    fun `test FFetchContext setClientConfig and setSecurityConfig`() {
+        val context = FFetchContext()
+
+        // Test initial state
+        val initialClientConfig = context.clientConfig
+        val initialSecurityConfig = context.securityConfig
+
+        // Create new configs
+        val newClient = MockFFetchHTTPClient()
+        val newParser = MockHTMLParser()
+        val newClientConfig = FFetchClientConfig(newClient, newParser)
+
+        val newHosts = mutableSetOf("test1.com", "test2.com")
+        val newSecurityConfig = FFetchSecurityConfig(newHosts)
+
+        // Set new configs directly
+        context.clientConfig = newClientConfig
+        context.securityConfig = newSecurityConfig
+
+        // Verify configs were updated
+        assertEquals(newClientConfig, context.clientConfig)
+        assertEquals(newSecurityConfig, context.securityConfig)
+        assertNotSame(initialClientConfig, context.clientConfig)
+        assertNotSame(initialSecurityConfig, context.securityConfig)
+
+        // Verify delegation still works
+        assertEquals(newClient, context.httpClient)
+        assertEquals(newParser, context.htmlParser)
+        assertEquals(newHosts, context.allowedHosts)
+    }
 }
