@@ -900,6 +900,98 @@ class FFetchDocumentFollowingTest {
         }
 
     @Test
+    fun testDefaultPortHandling() =
+        runTest {
+            val defaultPortResponse =
+                mockHttpClient.createAEMResponse(
+                    total = 4,
+                    offset = 0,
+                    limit = 255,
+                    data =
+                        listOf(
+                            mapOf(
+                                "path" to "/content/https-default",
+                                "title" to "HTTPS Default Port",
+                                "documentUrl" to "https://secure.example.com:443/doc.html",
+                            ),
+                            mapOf(
+                                "path" to "/content/https-no-port",
+                                "title" to "HTTPS No Port",
+                                "documentUrl" to "https://secure.example.com/doc.html",
+                            ),
+                            mapOf(
+                                "path" to "/content/http-default",
+                                "title" to "HTTP Default Port",
+                                "documentUrl" to "http://plain.example.com:80/doc.html",
+                            ),
+                            mapOf(
+                                "path" to "/content/http-no-port",
+                                "title" to "HTTP No Port",
+                                "documentUrl" to "http://plain.example.com/doc.html",
+                            ),
+                        ),
+                )
+
+            mockHttpClient.setSuccessResponse(
+                "https://example.com/default-ports.json?offset=0&limit=255",
+                defaultPortResponse,
+            )
+
+            mockHttpClient.setSuccessResponse(
+                "https://secure.example.com:443/doc.html",
+                "<html><body><h1>HTTPS Default Port Content</h1></body></html>",
+            )
+
+            mockHttpClient.setSuccessResponse(
+                "https://secure.example.com/doc.html",
+                "<html><body><h1>HTTPS No Port Content</h1></body></html>",
+            )
+
+            mockHttpClient.setSuccessResponse(
+                "http://plain.example.com:80/doc.html",
+                "<html><body><h1>HTTP Default Port Content</h1></body></html>",
+            )
+
+            mockHttpClient.setSuccessResponse(
+                "http://plain.example.com/doc.html",
+                "<html><body><h1>HTTP No Port Content</h1></body></html>",
+            )
+
+            val ffetch =
+                FFetch(
+                    URL("https://example.com/default-ports.json"),
+                    FFetchContext(
+                        httpClient = mockHttpClient,
+                        htmlParser = mockHtmlParser,
+                    ),
+                )
+
+            // Allow only the hostname without port specification
+            val results =
+                ffetch
+                    .allow(listOf("secure.example.com", "plain.example.com"))
+                    .follow("documentUrl")
+                    .asFlow()
+                    .toList()
+
+            assertEquals(4, results.size)
+
+            // All entries should succeed because default ports (443 for HTTPS, 80 for HTTP)
+            // should be treated the same as no port specification
+            results.forEach { entry ->
+                assertNotNull(entry["documentUrl"], "Expected successful fetch for ${entry["path"]}")
+                assertNull(entry["documentUrl_error"], "Expected no error for ${entry["path"]}")
+            }
+
+            // Verify that all documents were actually fetched
+            val requests = mockHttpClient.requestLog
+            assertTrue(requests.any { it.url.contains("secure.example.com:443") })
+            assertTrue(requests.any { it.url.contains("secure.example.com/doc.html") && !it.url.contains(":443") })
+            assertTrue(requests.any { it.url.contains("plain.example.com:80") })
+            assertTrue(requests.any { it.url.contains("plain.example.com/doc.html") && !it.url.contains(":80") })
+        }
+
+    @Test
     fun testOutOfMemoryErrorHandling() =
         runTest {
             // Configure mock parser to throw OutOfMemoryError
@@ -1135,6 +1227,40 @@ class FFetchDocumentFollowingTest {
         }
 
     @Test
+    fun testIllegalArgumentExceptionHandling() =
+        runTest {
+            // Configure mock parser to throw IllegalArgumentException
+            val illegalArgParser =
+                object : live.aem.koffetch.FFetchHTMLParser {
+                    override fun parse(html: String): org.jsoup.nodes.Document {
+                        throw IllegalArgumentException("Invalid HTML structure for parsing")
+                    }
+                }
+
+            val ffetch =
+                FFetch(
+                    URL("https://example.com/query-index.json"),
+                    FFetchContext(
+                        httpClient = mockHttpClient,
+                        htmlParser = illegalArgParser,
+                    ),
+                )
+
+            val results = ffetch.follow("documentUrl").asFlow().toList()
+
+            assertEquals(3, results.size)
+
+            // Entries that had valid URLs should have IllegalArgumentException handling
+            val entriesWithUrls = results.filter { it.containsKey("documentUrl") && it["documentUrl"] is String }
+            entriesWithUrls.forEach { entry ->
+                assertNull(entry["documentUrl"])
+                val error = entry["documentUrl_error"] as? String
+                assertTrue(error?.contains("HTML parsing error") == true)
+                assertTrue(error?.contains("Invalid HTML structure for parsing") == true)
+            }
+        }
+
+    @Test
     fun testProtocolEdgeCases() =
         runTest {
             val protocolResponse =
@@ -1190,6 +1316,40 @@ class FFetchDocumentFollowingTest {
             assertNull(ftpEntry["documentUrl"])
             val error = ftpEntry["documentUrl_error"] as? String
             assertTrue(error?.contains("Could not resolve URL") == true)
+        }
+
+    @Test
+    fun testDecodingErrorHandling() =
+        runTest {
+            // Configure mock parser to throw FFetchError.DecodingError
+            val decodingErrorParser =
+                object : live.aem.koffetch.FFetchHTMLParser {
+                    override fun parse(html: String): org.jsoup.nodes.Document {
+                        throw FFetchError.DecodingError(Exception("Failed to decode HTML content"))
+                    }
+                }
+
+            val ffetch =
+                FFetch(
+                    URL("https://example.com/query-index.json"),
+                    FFetchContext(
+                        httpClient = mockHttpClient,
+                        htmlParser = decodingErrorParser,
+                    ),
+                )
+
+            val results = ffetch.follow("documentUrl").asFlow().toList()
+
+            assertEquals(3, results.size)
+
+            // Entries that had valid URLs should have DecodingError handling
+            val entriesWithUrls = results.filter { it.containsKey("documentUrl") && it["documentUrl"] is String }
+            entriesWithUrls.forEach { entry ->
+                assertNull(entry["documentUrl"])
+                val error = entry["documentUrl_error"] as? String
+                assertTrue(error?.contains("HTML parsing error") == true)
+                assertTrue(error?.contains("Failed to decode HTML content") == true)
+            }
         }
 
     @Test
